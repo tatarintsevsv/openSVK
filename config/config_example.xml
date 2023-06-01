@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Пример конфигурации -->
+<config>
+  <!-- файл блокировки для предотвращения множественного запуска -->
+  <global lockfile="./.lock"/>
+  <!--  
+    Этап.
+    type - тип telnet|pop3|mda
+    enabled - 1|0 вкл/выкл
+    facility - название источника для syslog
+  -->
+  <stage type="telnet" enabled="0" facility="SVK_POP3_test">
+    <description>telnet auth</description>
+    <!--
+     Параметры telnet этапа
+     host - адрес telnet сервера
+     username - имя пользователя 
+     password - пароль
+     rules - правила обработки
+      -->
+    <telnet host="192.168.22.70" username="test" password="1qaz@WSX3edc" rules="./telnet_rules"/>
+  </stage>
+  <stage type="pop3" enabled="1" facility="SVK_POP3_test">
+    <description>Получение почты</description>
+    <!--
+     Параметры pop3 этапа
+     host - адрес telnet сервера
+     username - имя пользователя 
+     password - пароль
+     maildir - каталог для сохранения писем
+     keep - 1|0 оставлять письма на сервере
+     uidl - 1|0 использовать команду UIDL вместо LIST
+      -->
+    <pop3 host="192.168.22.70:110" username="test" password="1qaz@WSX3edc" maildir="/home/arise/qt/CBR_SVK/bin/files" keep="1" uidl="1"/>
+  </stage>
+  <stage type="mda" enabled="1" facility="SVK_POP3_test">
+    <description>Получение почты</description>
+    <!--
+     Параметры этапа разбора почты
+    -->
+    <mda config="/home/arise/qt/CBR_SVK/bin/mda_rules"/>
+  </stage>
+  <stage type="exec" enabled="1" facility="SVK_POP3_test">
+  </stage>
+</config>

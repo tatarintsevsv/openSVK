@@ -11,10 +11,12 @@
 #include <libxml2/libxml/valid.h>
 #include "string.h"
 xmlDocPtr doc=NULL;
+#define BUFSIZE 1024
+char configRoot[BUFSIZE]={0};
 char* configGetNodeSet(char* XPath)
 {
     xmlXPathContextPtr context;
-    char* res=NULL;
+    char* res=malloc(BUFSIZE);
     context = xmlXPathNewContext(doc);
     if (context == NULL) {
         syslog(LOG_CRIT,"Ошибка xmlXPathNewContext");
@@ -87,6 +89,9 @@ void configClose()
         doc=NULL;
     }
 }
+void configSetRoot(char* path){
+    strcpy(configRoot,path);
+}
 
 bool configInit(char* filename, char* facility)
 {
@@ -108,7 +113,7 @@ char* configReadString(char* path,const char* def)
     if(def==NULL)
         def="";
     char* xpath=malloc(CONFIG_BUFSIZE);
-    sprintf (xpath, "//config/%s/text()", path);
+    sprintf (xpath, "%s%s",configRoot, path);
     char* set=NULL;
     set = configGetNodeSet(xpath);
     free(xpath);

@@ -10,5 +10,6 @@ extern bool configInit(char* filename, char* facility);
 extern char* configReadString(char* path,const char* def);
 extern int configReadInt(char* path, int def);
 extern char* configGetNodeSet(char* XPath);
+extern void configSetRoot(char* path);
 
 #endif // CONFIG_H
