@@ -3,13 +3,12 @@
 
 int main()
 {
-    /*
-
+/*
     if(!configInit("/home/arise/qt/CBR_SVK/bin/config.xml","TEST"))
         return -1;
     char* buf=NULL;
-    buf = configReadString("stage[id=1]/f","???");
-    configGetNodeSet("//config/stage")
+    buf = configReadString("//config/stage[1]/@facility","???");
+    printf("%s\n",buf);
 
     configClose();
     printf("Hello World!\n");

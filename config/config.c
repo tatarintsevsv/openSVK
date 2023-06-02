@@ -13,10 +13,11 @@
 xmlDocPtr doc=NULL;
 #define BUFSIZE 1024
 char configRoot[BUFSIZE]={0};
-char* configGetNodeSet(char* XPath)
-{
+char* configGetNodeSet(const char* XPath)
+{    
     xmlXPathContextPtr context;
     char* res=malloc(BUFSIZE);
+    memset(res,'\0',BUFSIZE);
     context = xmlXPathNewContext(doc);
     if (context == NULL) {
         syslog(LOG_CRIT,"Ошибка xmlXPathNewContext");
@@ -89,11 +90,11 @@ void configClose()
         doc=NULL;
     }
 }
-void configSetRoot(char* path){
+void configSetRoot(const char *path){
     strcpy(configRoot,path);
 }
 
-bool configInit(char* filename, char* facility)
+bool configInit(const char* filename, const char* facility)
 {
     assert(filename!=NULL);
     openlog((facility==NULL)?"SVK_MAIL":facility,LOG_CONS|LOG_PID,LOG_MAIL);
@@ -107,7 +108,7 @@ bool configInit(char* filename, char* facility)
 }
 
 
-char* configReadString(char* path,const char* def)
+char* configReadString(const char* path,const char* def)
 {
     assert(path!=NULL);
     if(def==NULL)
@@ -124,10 +125,10 @@ char* configReadString(char* path,const char* def)
     return set;
 }
 
-int configReadInt(char* path, int def){
-    char* val=configReadString(path,NULL);
+int configReadInt(const char* path, int def){
+    char* val=configReadString(path,"");
     int res=def;
-    if(val!=NULL)
+    if(strlen(val))
         res=atoi(val);
     free(val);
     return res;

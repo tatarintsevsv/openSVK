@@ -35,27 +35,6 @@ static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *
     return size * nmemb;
 }
 
-char *trim(char *str)
-{
-  char *end;
-  char* res = malloc(1);res[0]='\0';
-  while(isspace((unsigned char)*str)) str++;
-  if(*str == 0) return res;
-
-  end = str + strlen(str) - 1;
-  while(end > str && isspace((unsigned char)*end)) end--;
-  res = realloc(res,strlen(str)+1);
-  memset(res,'\0',strlen(str)+1);
-  memcpy(res,str, end-str+1);
-  return res;
-}
-
-void getparam(char* dest,char* val,int start){
-    char* v = trim(&val[start]);
-    memccpy(dest,v,0,strlen(v));
-    free(v);
-}
-
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
