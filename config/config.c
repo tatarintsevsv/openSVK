@@ -120,8 +120,10 @@ char* configReadString(const char* path,const char* def)
     free(xpath);
     if(strstr(set,"$$$")==set){
         char* r = getenv(&set[3]);
-        set = realloc(set,strlen(r));
-        strcpy(set,r);
+        if(r!=NULL){
+            set = realloc(set,strlen(r));
+            strcpy(set,r);
+        }
     }
 
     if(set==NULL){
