@@ -118,6 +118,12 @@ char* configReadString(const char* path,const char* def)
     char* set=NULL;
     set = configGetNodeSet(xpath);
     free(xpath);
+    if(strstr(set,"$$$")==set){
+        char* r = getenv(&set[3]);
+        set = realloc(set,strlen(r));
+        strcpy(set,r);
+    }
+
     if(set==NULL){
         set = malloc(strlen(def)+1);
         strcpy(set,def);

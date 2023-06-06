@@ -125,8 +125,9 @@ int main(int argc, char *argv[])
                 fclose(f);
                 remove(filename);
             }else{
-                fclose(f);
-                syslog(LOG_INFO,"Получено сообщение %s. Размер %lu байт. Сохранено в %s",argv[2],ftell(f),filename);
+                long size = ftell(f);
+                fclose(f);                
+                syslog(LOG_INFO,"Получено сообщение %s. Размер %lu байт. Сохранено в %s",argv[2],size,filename);
                 if(!keep){
                     syslog(LOG_INFO,"Удаление сообщения %s.",argv[2]);
                     curl_easy_setopt(curl, CURLOPT_USERNAME, user);
@@ -143,5 +144,10 @@ int main(int argc, char *argv[])
         curl_easy_cleanup(curl);
     }
     printf("%s\n", res==CURLE_OK?filename:"-");
+    free(facility);
+    free(host);
+    free(user);
+    free(password);
+    free(maildir);
     return (int)res;
 }
