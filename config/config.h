@@ -4,12 +4,20 @@
 
 #define CONFIG_BUFSIZE 1024
 
+#ifdef __cplusplus
+#define ETYPE extern "C"
+#else
+#define ETYPE extern
+#endif
+
+
+
 //extern xmlDocPtr doc;
-extern void configClose();
-extern bool configInit(const char *filename, const char *facility);
-extern char* configReadString(const char* path,const char* def);
-extern int configReadInt(const char* path, int def);
-extern char* configGetNodeSet(const char* XPath);
-extern void configSetRoot(const char* path);
+ETYPE void configClose();
+ETYPE bool configInit(const char *filename, const char *facility);
+ETYPE char* configReadString(const char* path,const char* def);
+ETYPE int configReadInt(const char* path, int def);
+ETYPE char* configGetNodeSet(const char* XPath);
+ETYPE void configSetRoot(const char* path);
 
 #endif // CONFIG_H
