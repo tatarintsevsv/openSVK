@@ -102,7 +102,7 @@ static size_t curl_write(char *ptr, size_t size, size_t nmemb, char *userdata){
         bufsize+=(size * nmemb)+1;
         readbuf[bufptr]='\0';
         syslog(LOG_DEBUG,"%s",buf);
-        printf("%s",readbuf);
+        //printf("%s",readbuf);
         free(buf);
     }
     return size * nmemb;

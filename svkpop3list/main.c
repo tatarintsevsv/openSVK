@@ -49,8 +49,10 @@ int main(int argc, char *argv[])
     bool uidl;
     configSetRoot(argv[1]);
     facility=configReadString("@facility","SVK_POP3");
-    if(!configInit(CONFIG_XML,"pop3"))
+    if(!configInit(CONFIG_XML,"pop3")){
+        printf("error configInit\n");
         return 1;
+    }
     openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
     syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);
 
