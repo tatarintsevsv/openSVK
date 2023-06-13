@@ -5,6 +5,7 @@
 #include <syslog.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <curl/curl.h>
 #include "../config/config.h"
 
@@ -19,8 +20,7 @@ static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
     if(userdata!=NULL){
         char* buf=malloc(size * nmemb+1);
         buf[size * nmemb]='\0';
-        memcpy(buf,ptr,size * nmemb);
-        syslog(LOG_DEBUG,"%s",buf);
+        memcpy(buf,ptr,size * nmemb);        
         free(buf);
     }
     return fwrite(ptr,1,size * nmemb,(FILE*)userdata);
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     if(curl) {
         if(uidl){
             // check message id
-            syslog(LOG_INFO,"Проверка ID сообщения %s %s",argv[2],argv[3]);
+            //syslog(LOG_INFO,"Проверка ID сообщения %s %s",argv[2],argv[3]);
             f = open_memstream(&buffer, &bufferSize);
             char cmd[BUFSIZE]={0};
             sprintf (cmd, "UIDL %s", argv[2]);
@@ -105,7 +105,14 @@ int main(int argc, char *argv[])
         syslog(LOG_INFO,"Получение сообщения %s",argv[2]);
         char cmd[BUFSIZE]={0};
         sprintf (cmd, "%s/%s",host, argv[2]);
-        sprintf (filename, "%s/%lu_%s_%i",maildir,(unsigned long)time(NULL),argv[2],rand());
+        //sprintf (filename, "%s/tmp/%lu_%s_%i",maildir,(unsigned long)time(NULL),argv[2],rand());
+        char hostname[BUFSIZ]={0};
+        gethostname(&hostname[0], BUFSIZ);
+        for(int i=0;hostname[i]!='\0'&&i<BUFSIZ;i++){
+            if(hostname[i]=='/')hostname[i]='_';
+            if(hostname[i]==':')hostname[i]='_';
+        }
+        sprintf (filename, "%s/tmp/%lu.%lu.%s",maildir,(unsigned long)time(NULL),(unsigned long)rand(),hostname);
         f = fopen(filename,"wb");
         if(f==NULL){
             syslog(LOG_ERR,"Ошибка открытия файла для записи: %s",filename);                        
