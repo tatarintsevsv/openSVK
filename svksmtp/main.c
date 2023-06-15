@@ -39,11 +39,11 @@ int main(int argc, char *argv[])
 {
     srand(time(NULL));
     if(argc<3){
-        return -1;
+        return -2;
     }
     f=fopen(argv[2],"r");
     if(f==NULL){
-        return -1;
+        return -3;
     }
     char *buf = NULL;
     char* facility;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     configSetRoot(argv[1]);
     facility=configReadString("@facility","SVK_SMTP");
     if(!configInit(CONFIG_XML,"smtp"))
-        return 1;
+        return -4;
     openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
     syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);
     buf = configReadString("smtp/@host","");
