@@ -74,7 +74,10 @@ void svkCompose::prepareFile(string filename){
         syslog(LOG_ALERT,"Ошибка выделения памяти");
     }
     size_t readed;
-    fread(buf,1,stat_buf.st_size,fr);
+    readed = fread(buf,1,stat_buf.st_size,fr);
+    if(readed!=stat_buf.st_size){
+        syslog(LOG_ERR,"Считано меньше чем размер файла!");
+    }
     string b64 = base64_encode(buf,stat_buf.st_size);
     fclose(fr);
     free(buf);
