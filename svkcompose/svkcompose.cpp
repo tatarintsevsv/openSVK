@@ -29,7 +29,7 @@ void svkCompose::prepareFile(string filename){
     stat(string(source+filename).c_str(), &stat_buf);
     syslog(LOG_INFO,"Подготовка файла к отправке %s (%lu байт)",string(source+filename).c_str(),stat_buf.st_size);
 
-    string filepath = result+std::to_string((unsigned long)time(NULL))+"."+std::to_string((unsigned long)rand())+"."+hostname;
+    string filepath = result+std::to_string((unsigned long)time(NULL))+"."+std::to_string((unsigned long)rnd++)+"."+hostname;
     FILE* fr = fopen(string(source+filename).c_str(),"r");
     if(fr==NULL){
         syslog(LOG_ERR,"Ошибка открытия файла для чтения: %s",filename.c_str());
@@ -123,6 +123,7 @@ svkCompose::svkCompose(string root)
     openlog(facility.c_str(),LOG_CONS|LOG_PID,LOG_MAIL);
     configSetRoot(root.c_str());
     syslog(LOG_INFO,"Подготовка писем");
+    rnd = rand();
 
 }
 
