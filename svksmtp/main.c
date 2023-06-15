@@ -8,7 +8,7 @@
 #include <curl/curl.h>
 #include "../config/config.h"
 
-#define CONFIG_XML "/home/arise/qt/CBR_SVK/bin/config.xml"
+#define CONFIG_XML "./config.xml"
 #define BUFSIZE 1024
 
 char* buffer = NULL;

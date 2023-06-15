@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include "../config/config.h"
 
-#define CONFIG_XML "/home/arise/qt/CBR_SVK/bin/config.xml"
+#define CONFIG_XML "./config.xml"
 #define BUFSIZE 8192
 #define TELNET_RESULT_OK 1
 #define TELNET_RESULT_FAIL 2

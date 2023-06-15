@@ -11,10 +11,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(GCC_MY_FLAGS "-Wl,-rpath,.")
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_MY_FLAGS}")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "/home/arise/qt/CBR_SVK/bin")
+if(NOT DEFINED WHOLE_PROJECT)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./../../bin")
+else()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "{CMAKE_SOURCE_DIR}/../../bin")
+endif()
 
-
-link_libraries("/home/arise/qt/CBR_SVK/bin/libconfig.so")
+link_libraries("${CMAKE_SOURCE_DIR}/../bin/libconfig.so")
 find_library(LIBUUID_LIBRARY libuuid.a)
 include_directories(${LIBUUID_INCLUDE_DIR})
 link_libraries(${LIBXML2_LIBRARIES} ${LIBUUID_LIBRARY})

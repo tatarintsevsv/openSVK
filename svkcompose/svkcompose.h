@@ -6,8 +6,8 @@
 
 #include "../config/config.h"
 
-#define CONFIG_XML "/home/arise/qt/CBR_SVK/bin/config.xml"
-#define BINPATH "/home/arise/qt/CBR_SVK/bin/"
+#define CONFIG_XML "./config.xml"
+#define BINPATH "./"
 
 using  namespace std;
 namespace std{

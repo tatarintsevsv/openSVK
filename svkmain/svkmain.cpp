@@ -56,7 +56,7 @@ void svkMain::forkWork(string cmd, string param1, string param2, string param3){
 }
 int svkMain::__execute(std::string cmd, string *reply)
 {    
-    //printf("running %s\n",cmd.c_str());
+    printf("__execute %s\n",cmd.c_str());
     *reply = "";
     FILE* f=popen(cmd.c_str(),"r");
     if(errno!=0||f==NULL){
@@ -200,9 +200,10 @@ int svkMain::run()
     int stagesCount = stoi(configGetNodeSet("count(//config/stage)"));
     for(int stage=1;stage<stagesCount+1;stage++){
         string path="//config/stage["+to_string(stage)+"]/";
-        configSetRoot(path.c_str());        
+        configSetRoot(path.c_str());
         if(xmlReadInt("@enabled")==0)
             continue;
+        printf("Обработка %s\n",path.c_str());
         string desc = xmlReadString("description/text()");
         syslog(LOG_INFO,"Этап %i. %s",stage,desc.c_str());
         if(xmlReadString("@type")=="pop3"){

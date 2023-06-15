@@ -9,7 +9,7 @@
 #include <curl/curl.h>
 #include "../config/config.h"
 
-#define CONFIG_XML "/home/arise/qt/CBR_SVK/bin/config.xml"
+#define CONFIG_XML "./config.xml"
 #define BUFSIZE 1024
 
 char* buffer = NULL;
@@ -106,13 +106,13 @@ int main(int argc, char *argv[])
         char cmd[BUFSIZE]={0};
         sprintf (cmd, "%s/%s",host, argv[2]);
         //sprintf (filename, "%s/tmp/%lu_%s_%i",maildir,(unsigned long)time(NULL),argv[2],rand());
-        char hostname[BUFSIZ]={0};
-        gethostname(&hostname[0], BUFSIZ);
-        for(int i=0;hostname[i]!='\0'&&i<BUFSIZ;i++){
+        char hostname[512]={0};
+        gethostname(&hostname[0], 512);
+        for(int i=0;hostname[i]!='\0'&&i<512;i++){
             if(hostname[i]=='/')hostname[i]='_';
             if(hostname[i]==':')hostname[i]='_';
         }
-        sprintf (filename, "%s/tmp/%lu.%lu.%s",maildir,(unsigned long)time(NULL),(unsigned long)rand(),hostname);
+        sprintf (filename, "%s/tmp/%lu.%lu.%s",maildir,(unsigned long)time(NULL),(unsigned long)rand(),(char*)hostname);
         f = fopen(filename,"wb");
         if(f==NULL){
             syslog(LOG_ERR,"Ошибка открытия файла для записи: %s",filename);                        
