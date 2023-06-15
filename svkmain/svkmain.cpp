@@ -33,7 +33,26 @@ svkMain::svkMain()
 {
     chdir(BINPATH);
 }
+void svkMain::forkWork(string cmd, string params){
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+    }
+    pid_t cpid = fork();
+    if (cpid == -1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
 
+    if (cpid == 0) {    /* Child writes to pipe */
+        while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
+        close(pipefd[1]);
+        close(pipefd[0]);
+        int rc = execl(cmd.c_str(),cmd.c_str(),params.c_str(),NULL);
+        _exit(EXIT_FAILURE);
+    }
+}
 int svkMain::__execute(std::string cmd,std::string configRoot, string *reply)
 {    
     printf("running %s\n",cmd.c_str());
@@ -93,10 +112,25 @@ int svkMain::stage_pop3(string configRoot){
     return r;
 }
 
+int svkMain::stage_smtp(string configRoot)
+{
+
+}
+
 int svkMain::stage_telnet(string configRoot)
 {
     std::ostringstream oss;
     oss<<BINPATH<<"svktelnet "<<configRoot;
+    std::string cmd = oss.str();
+    std::string list="";
+    int r = __execute(cmd,configRoot,&list);
+    return r;
+}
+
+int svkMain::stage_compose(string configRoot)
+{
+    std::ostringstream oss;
+    oss<<BINPATH<<"svkcompose "<<configRoot;
     std::string cmd = oss.str();
     std::string list="";
     int r = __execute(cmd,configRoot,&list);
@@ -148,6 +182,14 @@ int svkMain::run()
         }
         else if(xmlReadString("@type")=="telnet"){
             if(stage_telnet(path)!=0)
+                    return -1;
+        }
+        else if(xmlReadString("@type")=="compose"){
+            if(stage_compose(path)!=0)
+                    return -1;
+        }
+        else if(xmlReadString("@type")=="smtp"){
+            if(stage_smtp(path)!=0)
                     return -1;
         }
     }

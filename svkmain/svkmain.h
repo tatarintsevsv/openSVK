@@ -17,9 +17,12 @@ class svkmain;
 class svkMain{
 protected:
     int stage_pop3(std::string configRoot);
+    int stage_smtp(std::string configRoot);
     int stage_telnet(std::string configRoot);
+    int stage_compose(std::string configRoot);
 private:
     int __execute(std::string cmd,std::string configRoot, string *reply);
+    void forkWork(string cmd, string params);
     std::string xmlReadString(string path,string def=""){
         char* r = configReadString(path.c_str(),def.c_str());
         std::string res = std::string(r);
@@ -29,7 +32,6 @@ private:
     int xmlReadInt(std::string path, int def=0){
          return configReadInt(path.c_str(), def);
     };
-
 public:
     svkMain();
     int run();
