@@ -32,7 +32,7 @@ std::vector<std::string> splitString(const std::string& str)
 
 svkMain::svkMain()
 {
-    chdir(BINPATH);
+    //chdir(BINPATH);
 }
 void svkMain::forkWork(string cmd, string param1, string param2, string param3){
     int pipefd[2];
@@ -168,32 +168,7 @@ int svkMain::run()
     openlog("SVKMain",LOG_CONS|LOG_PID,LOG_MAIL);
     configInit(CONFIG_XML,"SVKMain");
     configSetRoot("");
-    string lockfile = xmlReadString("//config/global/@lockfile");
     pollinterval = xmlReadInt("//config/global/@pollinterval");
-
-    struct flock lock;
-    int fd;
-
-    if((fd = open(lockfile.c_str(), O_WRONLY|O_CREAT|O_APPEND,S_IRUSR|S_IWUSR))==0){
-        syslog(LOG_ALERT,"Ошибка создания блокировки %s",lockfile.c_str());
-        return -1;
-    };
-
-    memset(&lock, 0, sizeof(struct flock));
-    fcntl(fd, F_GETLK, &lock);
-    if(lock.l_type==F_WRLCK || lock.l_type==F_RDLCK){
-        syslog(LOG_ALERT,"Обнаружена блокировка %s (один экземпляр уже работает?)",lockfile.c_str());
-        close(fd);
-        _exit(-1);
-    }
-    memset(&lock, 0, sizeof(struct flock));
-    lock.l_type = F_WRLCK;
-    lock.l_start=0;
-    lock.l_whence = SEEK_SET;
-    lock.l_len=0;
-    lock.l_pid = getpid();
-    if (fcntl(fd, F_SETLK, &lock) < 0)
-        perror("Ошибка блокировки\n");
 
     syslog(LOG_INFO,"=================================================");
     syslog(LOG_INFO,"Запуск обработки");
@@ -222,8 +197,6 @@ int svkMain::run()
                     return -1;
         }
     }
-    close(fd);
-    remove(lockfile.c_str());
     configClose();    
     syslog(LOG_INFO,"=================================================");
     syslog(LOG_INFO,"обработка завершена");

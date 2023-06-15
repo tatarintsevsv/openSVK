@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <global pollinterval="60"/>
+  <stage type="telnet" enabled="1" facility="SVK_TELNET_test">
+    <description>telnet auth</description>
+    <telnet host="192.168.22.68:23" username="admin" password="$$$SVK_TELNET_PASSWORD" timeout="5" rules="./telnet_login"/> 
+  </stage>
+  <stage type="pop3" enabled="0" facility="SVK_POP3_test">
+    <description>Получение почты</description>
+    <pop3 host="192.168.22.70:110" username="test" password="$$$SVK_POP3_PASSWORD" maildir="./files" keep="1" uidl="1"/>
+    <mda config="/home/arise/qt/CBR_SVK/bin/mda_rules"/>
+  </stage>
+  <stage type="compose" enabled="1" facility="SVK_COMPOSE_test">
+    <description>Подготовка писем</description>  
+    <source in="./files_to_send/" out="./send/" from="test@kraskript.com" recipients="tsv@kraskript.com,arise@kraskript.com"/>
+  </stage>
+  <stage type="smtp" enabled="1" facility="SVK_SMTP_test">
+    <description>Отправка почты</description>  
+    <smtp host="192.168.22.70:25" username="test" password="$$$SVK_POP3_PASSWORD" source="./send/" sent="./send/done/" from="test@kraskript.com" recipients="tsv@kraskript.com,arise@kraskript.com"/>
+  </stage>
+  
+</config>
