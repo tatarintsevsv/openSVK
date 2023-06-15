@@ -89,6 +89,7 @@ void svkCompose::prepareFile(string filename){
     }
     fprintf(f,"%s\n\n--%s--\n",line.c_str(),boundary.c_str());    
     fclose(f);
+    syslog(LOG_INFO,"Для файла %s подготовлено письмо %s",string(source+filename).c_str(),filepath.c_str());
     if(remove(string(source+filename).c_str())!=0){
         syslog(LOG_ERR,"Ошибка удаления исходного файла %s",string(source+filename).c_str());
     };
@@ -118,7 +119,7 @@ svkCompose::svkCompose(string root)
     configInit(CONFIG_XML,"SVKCompose");
     this->root = root;
     configSetRoot(root.c_str());
-    string facility=xmlReadString("@facility","SVKCompose");
+    facility=xmlReadString("@facility","SVKCompose");
     openlog(facility.c_str(),LOG_CONS|LOG_PID,LOG_MAIL);
     configSetRoot(root.c_str());
     syslog(LOG_INFO,"Подготовка писем");

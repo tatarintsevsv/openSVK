@@ -30,6 +30,7 @@ private:
     int xmlReadInt(std::string path, int def=0){
          return configReadInt(path.c_str(), def);
     };
+    string facility;
     string source;
     string result;
     string from;
