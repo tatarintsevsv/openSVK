@@ -126,9 +126,9 @@ int svkMain::stage_smtp(string configRoot)
             continue;
         const auto filenameStr = entry.path().filename().string();
         std::ostringstream oss;
-        oss.str("");
-        oss<<BINPATH<<"svksmtp "<<configRoot<<" "<< filenameStr;
+        oss.str("");        
         string filepath=source+filenameStr;
+        oss<<BINPATH<<"svksmtp "<<configRoot<<" "<< filepath;
         string cmd = oss.str();
         string list="";
         int r = __execute(cmd,&list);
@@ -194,6 +194,7 @@ int svkMain::run()
     if (fcntl(fd, F_SETLK, &lock) < 0)
         perror("Ошибка блокировки\n");
 
+    syslog(LOG_INFO,"=================================================");
     syslog(LOG_INFO,"Запуск обработки");
     int stagesCount = stoi(configGetNodeSet("count(//config/stage)"));
     for(int stage=1;stage<stagesCount+1;stage++){
@@ -221,6 +222,9 @@ int svkMain::run()
     }
     close(fd);
     remove(lockfile.c_str());
-    configClose();
+    configClose();    
+    syslog(LOG_INFO,"=================================================");
+    syslog(LOG_INFO,"обработка завершена");
+    closelog();
     return 0;
 }
