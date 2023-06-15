@@ -10,9 +10,10 @@
 #include <sys/select.h>
 #include <sstream>
 #include <vector>
-
+#include <filesystem>
 
 using namespace std;
+namespace fs = std::filesystem;
 
 std::vector<std::string> splitString(const std::string& str)
 {
@@ -33,7 +34,7 @@ svkMain::svkMain()
 {
     chdir(BINPATH);
 }
-void svkMain::forkWork(string cmd, string params){
+void svkMain::forkWork(string cmd, string param1, string param2, string param3){
     int pipefd[2];
     if (pipe(pipefd) == -1) {
             perror("pipe");
@@ -49,11 +50,11 @@ void svkMain::forkWork(string cmd, string params){
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
         close(pipefd[1]);
         close(pipefd[0]);
-        int rc = execl(cmd.c_str(),cmd.c_str(),params.c_str(),NULL);
+        int rc = execl(cmd.c_str(),cmd.c_str(),param1.empty()?NULL:param1.c_str(),param2.empty()?NULL:param2.c_str(),param3.empty()?NULL:param3.c_str());
         _exit(EXIT_FAILURE);
     }
 }
-int svkMain::__execute(std::string cmd,std::string configRoot, string *reply)
+int svkMain::__execute(std::string cmd, string *reply)
 {    
     printf("running %s\n",cmd.c_str());
     *reply = "";
@@ -91,7 +92,7 @@ int svkMain::stage_pop3(string configRoot){
     oss<<BINPATH<<"svkpop3list "<<configRoot;
     std::string cmd = oss.str();
     std::string list="";
-    int r = __execute(cmd,configRoot,&list);
+    int r = __execute(cmd,&list);
     if(r!=0){
         return r;
     }else{
@@ -104,7 +105,7 @@ int svkMain::stage_pop3(string configRoot){
         oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< (*it).c_str();
         cmd = oss.str();
         //printf("%s\n",cmd.c_str());
-        r = __execute(cmd,configRoot,&list);
+        r = __execute(cmd,&list);
         if(r!=0){
             // TODO analize return code
         }
@@ -114,7 +115,32 @@ int svkMain::stage_pop3(string configRoot){
 
 int svkMain::stage_smtp(string configRoot)
 {
-
+    // TODO: lock maildir
+    string source=xmlReadString("smtp/@source");
+    string sent=xmlReadString("smtp/@sent");
+    if(source.empty())
+        return 0;
+    const fs::path dir{source};
+    for(const auto& entry: fs::directory_iterator(dir)){
+        if (!entry.is_regular_file())
+            continue;
+        const auto filenameStr = entry.path().filename().string();
+        std::ostringstream oss;
+        oss.str("");
+        oss<<BINPATH<<"svksmtp "<<configRoot<<" "<< filenameStr;
+        string filepath=source+filenameStr;
+        string cmd = oss.str();
+        string list="";
+        int r = __execute(cmd,&list);
+        if(r!=0){
+            // TODO analize return code
+        }else{
+            if(!sent.empty())
+                if(rename(filepath.c_str(),string(sent+filenameStr).c_str())!=0)
+                    syslog(LOG_ERR,"Ошибка переноса письма %s в %s (%s)",filepath.c_str(),string(sent+filenameStr).c_str(),strerror(errno));
+        }
+    }
+    return 0;
 }
 
 int svkMain::stage_telnet(string configRoot)
@@ -123,7 +149,7 @@ int svkMain::stage_telnet(string configRoot)
     oss<<BINPATH<<"svktelnet "<<configRoot;
     std::string cmd = oss.str();
     std::string list="";
-    int r = __execute(cmd,configRoot,&list);
+    int r = __execute(cmd,&list);
     return r;
 }
 
@@ -133,7 +159,7 @@ int svkMain::stage_compose(string configRoot)
     oss<<BINPATH<<"svkcompose "<<configRoot;
     std::string cmd = oss.str();
     std::string list="";
-    int r = __execute(cmd,configRoot,&list);
+    int r = __execute(cmd,&list);
     return r;
 };
 

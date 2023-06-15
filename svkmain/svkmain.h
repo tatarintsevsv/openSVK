@@ -21,8 +21,8 @@ protected:
     int stage_telnet(std::string configRoot);
     int stage_compose(std::string configRoot);
 private:
-    int __execute(std::string cmd,std::string configRoot, string *reply);
-    void forkWork(string cmd, string params);
+    int __execute(std::string cmd, string *reply);
+    void forkWork(string cmd, string param1="", string param2="", string param3="");
     std::string xmlReadString(string path,string def=""){
         char* r = configReadString(path.c_str(),def.c_str());
         std::string res = std::string(r);
