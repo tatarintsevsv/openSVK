@@ -87,8 +87,7 @@ void svkCompose::prepareFile(string filename){
             line=*it;
         }
     }
-    fprintf(f,"%s\n\n--%s--\n",line.c_str(),boundary.c_str());
-    fprintf(f,"\n\n\n%s\n",b64.c_str());
+    fprintf(f,"%s\n\n--%s--\n",line.c_str(),boundary.c_str());    
     fclose(f);
     if(remove(string(source+filename).c_str())!=0){
         syslog(LOG_ERR,"Ошибка удаления исходного файла %s",string(source+filename).c_str());
