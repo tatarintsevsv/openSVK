@@ -1,0 +1,14 @@
+#/lib/systemd/system/svk-cbr.service
+[Unit]
+  Description=ЦБР СВК
+
+[Service]
+  ExecStart=./bin/svkmain
+  Type=idle
+  KillMode=process
+  SyslogIdentifier=cbr-svk
+  SyslogFacility=daemon
+  Restart=on-failure
+
+[Install]
+  WantedBy=multiuser.target
