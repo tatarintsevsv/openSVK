@@ -3,16 +3,23 @@
   Description=ЦБР СВК
 
 [Service]
+<<<<<<< HEAD
   ExecStart=/opt/cbr-svk/svkmain
   WorkingDirectory=/opt/cbr-svk
+=======
+  ExecStart=./bin/svkmain
+>>>>>>> c5a4c923f277aa27d24fcb5bd52cc463c6341fb9
   Type=idle
   KillMode=process
   SyslogIdentifier=cbr-svk
   SyslogFacility=daemon
   Restart=on-failure
+<<<<<<< HEAD
   User=arise
   Group=arise
   EnvironmentFile=/opt/cbr-svk/env
+=======
+>>>>>>> c5a4c923f277aa27d24fcb5bd52cc463c6341fb9
 
 [Install]
   WantedBy=multiuser.target
