@@ -56,7 +56,7 @@ void svkMain::forkWork(string cmd, string param1, string param2, string param3){
 }
 int svkMain::__execute(std::string cmd, string *reply)
 {    
-    printf("running %s\n",cmd.c_str());
+    //printf("running %s\n",cmd.c_str());
     *reply = "";
     FILE* f=popen(cmd.c_str(),"r");
     if(errno!=0||f==NULL){
@@ -169,6 +169,7 @@ int svkMain::run()
     configInit(CONFIG_XML,"SVKMain");
     configSetRoot("");
     string lockfile = xmlReadString("//config/global/@lockfile");
+    pollinterval = xmlReadInt("//config/global/@pollinterval");
 
     struct flock lock;
     int fd;

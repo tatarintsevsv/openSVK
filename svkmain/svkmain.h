@@ -21,6 +21,7 @@ protected:
     int stage_telnet(std::string configRoot);
     int stage_compose(std::string configRoot);
 private:
+    int pollinterval;
     int __execute(std::string cmd, string *reply);
     void forkWork(string cmd, string param1="", string param2="", string param3="");
     std::string xmlReadString(string path,string def=""){
@@ -34,6 +35,7 @@ private:
     };
 public:
     svkMain();
+    int get_pollinterval(){return pollinterval;};
     int run();
 };
 

@@ -121,8 +121,7 @@ svkCompose::svkCompose(string root)
     configSetRoot(root.c_str());
     facility=xmlReadString("@facility","SVKCompose");
     openlog(facility.c_str(),LOG_CONS|LOG_PID,LOG_MAIL);
-    configSetRoot(root.c_str());
-    syslog(LOG_INFO,"Подготовка писем");
+    configSetRoot(root.c_str());    
     rnd = rand();
 
 }
