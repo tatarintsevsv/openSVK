@@ -50,7 +50,7 @@ void svkMain::forkWork(string cmd, string param1, string param2, string param3){
         while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
         close(pipefd[1]);
         close(pipefd[0]);
-        int rc = execl(cmd.c_str(),cmd.c_str(),param1.empty()?NULL:param1.c_str(),param2.empty()?NULL:param2.c_str(),param3.empty()?NULL:param3.c_str());
+        int rc = execl(cmd.c_str(),cmd.c_str(),param1.empty()?NULL:param1.c_str(),param2.empty()?NULL:param2.c_str(),param3.empty()?NULL:param3.c_str(),NULL);
         _exit(EXIT_FAILURE);
     }
 }
