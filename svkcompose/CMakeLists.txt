@@ -14,13 +14,12 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_MY_FLAGS}")
 if(NOT DEFINED WHOLE_PROJECT)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./../../bin")
 else()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "{CMAKE_SOURCE_DIR}/../../bin")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 endif()
 
-link_libraries("${CMAKE_SOURCE_DIR}/../bin/libconfig.so")
-find_library(LIBUUID_LIBRARY libuuid.a)
-include_directories(${LIBUUID_INCLUDE_DIR})
-link_libraries(${LIBXML2_LIBRARIES} ${LIBUUID_LIBRARY})
+link_libraries("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libconfig.so")
 
+find_library(LIBUUID_LIBRARY libuuid.a)
+link_libraries(${LIBUUID_LIBRARY})
 
 add_executable(svkcompose main.cpp svkcompose.h svkcompose.cpp base64.cpp base64.h)
