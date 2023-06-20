@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <curl/curl.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include "../config/config.h"
 
 #define CONFIG_XML "./config.xml"
@@ -13,17 +17,17 @@
 
 char* buffer = NULL;
 size_t bufferSize = 0;
-FILE* f = NULL;
+int f = 0;
 
 static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
-    if(userdata!=NULL){
+    if(size * nmemb!=0){
         char* buf=malloc(size * nmemb+1);
         buf[size * nmemb]='\0';
         memcpy(buf,ptr,size * nmemb);        
         syslog(LOG_DEBUG,"%s",buf);
         free(buf);
-    }
-    return fwrite(ptr,1,size * nmemb,(FILE*)userdata);
+    }    
+    return read(f,ptr,size * nmemb);
 }
 
 static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *userdata){
@@ -38,11 +42,13 @@ static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
+    openlog("SVK_SMTP",LOG_CONS|LOG_PID,LOG_MAIL);
     if(argc<3){
         return -2;
     }
-    f=fopen(argv[2],"r");
-    if(f==NULL){
+    f=open(argv[2],O_RDONLY);
+    if(f<=0){
+        syslog(LOG_ERR,"Ошибка открытия файла '%s' (%s)",argv[2],strerror(errno));
         return -3;
     }
     char *buf = NULL;
@@ -55,25 +61,26 @@ int main(int argc, char *argv[])
     char* recipients;
 
     configSetRoot(argv[1]);
-    facility=configReadString("@facility","SVK_SMTP");
+    facility=configReadString("../@facility","SVK_SMTP");
     if(!configInit(CONFIG_XML,"smtp"))
         return -4;
+    closelog();
     openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
     syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);
-    buf = configReadString("smtp/@host","");
+    buf = configReadString("@host","");
     host = malloc(strlen(buf)+8);
     sprintf(host,"smtp://%s",buf);
     free(buf);
-    user=configReadString("smtp/@username","");
-    password = configReadString("smtp/@password","");
-    source = configReadString("smtp/@source","");
-    from = configReadString("smtp/@from","");
-    recipients = configReadString("smtp/@recipients","");
+    user=configReadString("@username","");
+    password = configReadString("@password","");
+    source = configReadString("@source","");
+    from = configReadString("@from","");
+    recipients = configReadString("@recipients","");
     buf = NULL;
-    fseek(f, 0L, SEEK_END);
-    int size = ftell(f);
+    struct stat stat_buf;
+        stat(argv[2], &stat_buf);
+    int size = stat_buf.st_size;
     syslog(LOG_INFO,"Отправка '%s' (%i байт) от %s. Корреспонденты %s",argv[2],size,from,recipients);
-    rewind(f);
 
     CURL *curl;
     CURLcode res = CURLE_OK;
@@ -84,7 +91,7 @@ int main(int argc, char *argv[])
         curl_easy_setopt(curl, CURLOPT_USERNAME, user);
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_response_headers);
-        curl_easy_setopt(curl, CURLOPT_READDATA,f);
+        curl_easy_setopt(curl, CURLOPT_READFUNCTION,curl_read);
         curl_easy_setopt(curl, CURLOPT_HEADER,1L);
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
         curl_easy_setopt(curl, CURLOPT_TCP_NODELAY, 1L);
@@ -100,6 +107,7 @@ int main(int argc, char *argv[])
         curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, rcpt_list);
         res = curl_easy_perform(curl);
         curl_slist_free_all(rcpt_list);
+        close(f);
         if(res != CURLE_OK){
             syslog(LOG_ERR,"Отправка '%s'. Ошибка транспорта %i: %s",argv[2],res,curl_easy_strerror(res));
         }else{

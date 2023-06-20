@@ -2,10 +2,12 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 #include <syslog.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <curl/curl.h>
 #include "../config/config.h"
 
@@ -37,7 +39,11 @@ static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *
 
 int main(int argc, char *argv[])
 {
-    srand(time(NULL));
+    int r = open("/dev/random",O_RDONLY);
+    int seed = getuid()+time(0);
+    read(r,&seed,sizeof(int));
+    close(r);
+    srand(seed);
     if(argc<4){
         return -1;
     }    
@@ -48,6 +54,7 @@ int main(int argc, char *argv[])
     char* password;
     char* maildir;
     char filename[BUFSIZE]={0};
+    char filepath[BUFSIZE]={0};
     bool uidl;
     bool keep;
     configSetRoot(argv[1]);
@@ -104,18 +111,24 @@ int main(int argc, char *argv[])
         // Receive message
         syslog(LOG_INFO,"Получение сообщения %s",argv[2]);
         char cmd[BUFSIZE]={0};
-        sprintf (cmd, "%s/%s",host, argv[2]);
-        //sprintf (filename, "%s/tmp/%lu_%s_%i",maildir,(unsigned long)time(NULL),argv[2],rand());
+        sprintf (cmd, "%s/%s",host, argv[2]);        
         char hostname[512]={0};
         gethostname(&hostname[0], 512);
         for(int i=0;hostname[i]!='\0'&&i<512;i++){
             if(hostname[i]=='/')hostname[i]='_';
             if(hostname[i]==':')hostname[i]='_';
         }
-        sprintf (filename, "%s/tmp/%lu.%lu.%s",maildir,(unsigned long)time(NULL),(unsigned long)rand(),(char*)hostname);
-        f = fopen(filename,"wb");
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        unsigned long long millisecondsSinceEpoch =
+            (unsigned long long)(tv.tv_sec) * 1000 +
+            (unsigned long long)(tv.tv_usec) / 1000;
+
+        sprintf (filename, "%010d.%llu.%s",rand(),millisecondsSinceEpoch,(char*)hostname);
+        sprintf (filepath, "%stmp/%s",maildir,filename);
+        f = fopen(filepath,"wb");
         if(f==NULL){
-            syslog(LOG_ERR,"Ошибка открытия файла для записи: %s",filename);                        
+            syslog(LOG_ERR,"Ошибка открытия файла для записи: %s",filepath);
         }else{
             curl_easy_setopt(curl, CURLOPT_USERNAME, user);
             curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
@@ -130,11 +143,12 @@ int main(int argc, char *argv[])
             if(res != CURLE_OK){
                 syslog(LOG_ERR,"Ошибка транспорта %i: %s",res,curl_easy_strerror(res));
                 fclose(f);
-                remove(filename);
+                remove(filepath);
             }else{
                 long size = ftell(f);
-                fclose(f);                
-                syslog(LOG_INFO,"Получено сообщение %s. Размер %lu байт. Сохранено в %s",argv[2],size,filename);
+                fclose(f);
+
+                syslog(LOG_INFO,"Получено сообщение %s. Размер %lu байт. Сохранено в %s",argv[2],size,filepath);
                 if(!keep){
                     syslog(LOG_INFO,"Удаление сообщения %s.",argv[2]);
                     curl_easy_setopt(curl, CURLOPT_USERNAME, user);
@@ -150,11 +164,17 @@ int main(int argc, char *argv[])
         }
         curl_easy_cleanup(curl);
     }
-    printf("%s\n", res==CURLE_OK?filename:"-");
+    char newfn[1024];
+    sprintf (newfn, "%scur/%s",maildir,filename);
     free(facility);
     free(host);
     free(user);
     free(password);
     free(maildir);
+    if(rename(filepath,newfn)!=0){
+        syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",newfn,strerror(errno));
+        return errno;
+    };
+    printf("%s\n", res==CURLE_OK?newfn:"-");
     return (int)res;
 }

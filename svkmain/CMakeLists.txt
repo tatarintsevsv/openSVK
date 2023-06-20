@@ -12,9 +12,10 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_MY_FLAGS}")
 
 if(NOT DEFINED WHOLE_PROJECT)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./../../bin")
+    link_libraries("${CMAKE_CURRENT_SOURCE_DIR}/../bin/libconfig.so")
 else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+    link_libraries("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libconfig.so")
 endif()
-link_libraries("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libconfig.so")
 
 add_executable(svkmain main.cpp svkmain.h svkmain.cpp)

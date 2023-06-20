@@ -19,7 +19,7 @@ protected:
     void prepareFile(string filename);
     void processDir(string node);
 private:
-    int rnd;
+    int seed;
     std::string root;
     std::string xmlReadString(string path,string def=""){
         char* r = configReadString(path.c_str(),def.c_str());

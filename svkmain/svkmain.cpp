@@ -114,12 +114,22 @@ int svkMain::stage_pop3(string configRoot){
 }
 
 int svkMain::stage_smtp(string configRoot)
-{
-    // TODO: lock maildir
-    string source=xmlReadString("smtp/@source");
-    string sent=xmlReadString("smtp/@sent");
+{    
+    string source=xmlReadString("@source");
+    string sent=xmlReadString("@sent");
     if(source.empty())
         return 0;
+    // Maildir
+    //FILE* lock=NULL;
+    //if(access( (sent+"dovecot-uidlist.lock").c_str(), F_OK ) != -1){
+    //    syslog(LOG_ERR,"Найдена блокировка %s. Ожидаем освобождения ресурса",(sent+"dovecot-uidlist.lock").c_str());
+    //    while((lock = fopen((sent+"dovecot-uidlist.lock").c_str(), "w"))==NULL)
+    //        sleep(1);
+    //}
+    //fprintf(lock,"locked");
+    //
+    //****************
+    source+="cur/";
     const fs::path dir{source};
     for(const auto& entry: fs::directory_iterator(dir)){
         if (!entry.is_regular_file())
@@ -136,10 +146,13 @@ int svkMain::stage_smtp(string configRoot)
             // TODO analize return code
         }else{
             if(!sent.empty())
-                if(rename(filepath.c_str(),string(sent+filenameStr).c_str())!=0)
+                if(rename(filepath.c_str(),string(sent+"cur/"+filenameStr).c_str())!=0)
                     syslog(LOG_ERR,"Ошибка переноса письма %s в %s (%s)",filepath.c_str(),string(sent+filenameStr).c_str(),strerror(errno));
         }
     }
+    //fclose(lock);
+    //unlink((sent+"dovecot-uidlist.lock").c_str());
+
     return 0;
 }
 
@@ -186,15 +199,27 @@ int svkMain::run()
         }
         else if(xmlReadString("@type")=="telnet"){
             if(stage_telnet(path)!=0)
-                    return -1;
+                    ;// TODO: check errors
         }
         else if(xmlReadString("@type")=="compose"){
             if(stage_compose(path)!=0)
-                    return -1;
+                    ;// TODO: check errors
         }
         else if(xmlReadString("@type")=="smtp"){
-            if(stage_smtp(path)!=0)
-                    return -1;
+            int smtpCount = 0;
+            try{
+                smtpCount = stoi(configGetNodeSet(string("count("+path+"smtp"+")").c_str()));
+            }
+            catch (std::invalid_argument const& ex)
+            {
+                syslog(LOG_ERR,"Не указаны узлы отправки smtp");
+            }
+            for(int smtp=0;smtp<smtpCount;smtp++){
+                string xp = path+"smtp["+to_string(smtp)+"]/";
+                configSetRoot(xp.c_str());
+                if(stage_smtp(xp)!=0)
+                    ;// TODO: check errors
+            }
         }
     }
     configClose();    

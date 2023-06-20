@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <uuid/uuid.h>
 #include <sys/stat.h>
+#include <stdio.h>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -28,8 +29,15 @@ void svkCompose::prepareFile(string filename){
     struct stat stat_buf;
     stat(string(source+filename).c_str(), &stat_buf);
     syslog(LOG_INFO,"Подготовка файла к отправке %s (%lu байт)",string(source+filename).c_str(),stat_buf.st_size);
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    unsigned long long millisecondsSinceEpoch =
+        (unsigned long long)(tv.tv_sec) * 1000 +
+        (unsigned long long)(tv.tv_usec) / 1000;
 
-    string filepath = result+std::to_string((unsigned long)time(NULL))+"."+std::to_string((unsigned long)rnd++)+"."+hostname;
+    string mailname =std::to_string(rand())+"."+std::to_string(millisecondsSinceEpoch)+"."+hostname;
+
+    string filepath = result+"tmp/"+mailname;
     FILE* fr = fopen(string(source+filename).c_str(),"r");
     if(fr==NULL){
         syslog(LOG_ERR,"Ошибка открытия файла для чтения: %s",filename.c_str());
@@ -92,7 +100,11 @@ void svkCompose::prepareFile(string filename){
     }
     fprintf(f,"%s\n\n--%s--\n",line.c_str(),boundary.c_str());    
     fclose(f);
-    syslog(LOG_INFO,"Для файла %s подготовлено письмо %s",string(source+filename).c_str(),filepath.c_str());
+    // Maildir
+    if(rename(filepath.c_str(),(result+"../cur/"+mailname).c_str())!=0)
+            syslog(LOG_ERR,"ошибка переноса в cur: %s",strerror(errno));
+    //**************
+    syslog(LOG_INFO,"Для файла %s подготовлено письмо %s",string(source+filename).c_str(),(result+"../cur/"+mailname).c_str());
     if(remove(string(source+filename).c_str())!=0){
         syslog(LOG_ERR,"Ошибка удаления исходного файла %s",string(source+filename).c_str());
     };
@@ -108,6 +120,22 @@ void svkCompose::processDir(string node)
 
     if(source.empty()||result.empty())
         return;
+    // Maildir lock
+/*
+    int lock=0;
+    if(access( (result+"dovecot-uidlist.lock").c_str(), F_OK ) == 0){
+        syslog(LOG_ERR,"Найдена блокировка %s. Ожидаем освобождения ресурса",(result+"dovecot-uidlist.lock").c_str());
+        while(access( (result+"dovecot-uidlist.lock").c_str(), F_OK ) == 0)
+            {sleep(1);};
+        syslog(LOG_ERR,"Блокировка %s снята. Продолжаем",(result+"dovecot-uidlist.lock").c_str());
+    }
+    if((lock = creat((result+"dovecot-uidlist.lock").c_str(), O_CREAT))==0){
+        syslog(LOG_ERR,"LOCKING ERROR %s (%s)",strerror(errno),(result+"dovecot-uidlist.lock").c_str());
+    }
+    write(lock,"locked",6);
+
+*/
+    //****************
     const fs::path dir{source};
     for(const auto& entry: fs::directory_iterator(dir)){
         if (!entry.is_regular_file())
@@ -115,6 +143,9 @@ void svkCompose::processDir(string node)
         const auto filenameStr = entry.path().filename().string();
         prepareFile(filenameStr);
     }
+/*    close(lock);
+    unlink((result+"dovecot-uidlist.lock").c_str());
+*/
 }
 
 svkCompose::svkCompose(string root)
@@ -125,7 +156,7 @@ svkCompose::svkCompose(string root)
     facility=xmlReadString("@facility","SVKCompose");
     openlog(facility.c_str(),LOG_CONS|LOG_PID,LOG_MAIL);
     configSetRoot(root.c_str());    
-    rnd = rand();
+    srand(getuid());
 
 }
 
