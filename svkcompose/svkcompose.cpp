@@ -101,10 +101,10 @@ void svkCompose::prepareFile(string filename){
     fprintf(f,"%s\n\n--%s--\n",line.c_str(),boundary.c_str());    
     fclose(f);
     // Maildir
-    if(rename(filepath.c_str(),(result+"../cur/"+mailname).c_str())!=0)
+    if(rename(filepath.c_str(),(result+"cur/"+mailname).c_str())!=0)
             syslog(LOG_ERR,"ошибка переноса в cur: %s",strerror(errno));
     //**************
-    syslog(LOG_INFO,"Для файла %s подготовлено письмо %s",string(source+filename).c_str(),(result+"../cur/"+mailname).c_str());
+    syslog(LOG_INFO,"Для файла %s подготовлено письмо %s",string(source+filename).c_str(),(result+"cur/"+mailname).c_str());
     if(remove(string(source+filename).c_str())!=0){
         syslog(LOG_ERR,"Ошибка удаления исходного файла %s",string(source+filename).c_str());
     };

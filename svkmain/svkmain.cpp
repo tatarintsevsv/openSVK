@@ -32,7 +32,7 @@ std::vector<std::string> splitString(const std::string& str)
 
 svkMain::svkMain()
 {
-    //chdir(BINPATH);
+
 }
 void svkMain::forkWork(string cmd, string param1, string param2, string param3){
     int pipefd[2];
@@ -56,7 +56,7 @@ void svkMain::forkWork(string cmd, string param1, string param2, string param3){
 }
 int svkMain::__execute(std::string cmd, string *reply)
 {    
-    printf("__execute %s\n",cmd.c_str());
+    printf("        __execute %s\n",cmd.c_str());
     *reply = "";
     FILE* f=popen(cmd.c_str(),"r");
     if(errno!=0||f==NULL){
@@ -215,8 +215,9 @@ int svkMain::run()
                 syslog(LOG_ERR,"Не указаны узлы отправки smtp");
             }
             for(int smtp=0;smtp<smtpCount;smtp++){
-                string xp = path+"smtp["+to_string(smtp)+"]/";
+                string xp = path+"smtp["+to_string(smtp+1)+"]/";
                 configSetRoot(xp.c_str());
+                printf("    Обработка %s\n",xp.c_str());
                 if(stage_smtp(xp)!=0)
                     ;// TODO: check errors
             }
