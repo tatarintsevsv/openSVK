@@ -8,8 +8,9 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <semaphore.h>
+#include <time.h>
 #include <sstream>
-#include <vector>
 #include <filesystem>
 
 using namespace std;
@@ -54,13 +55,24 @@ void svkMain::forkWork(string cmd, string param1, string param2, string param3){
         _exit(EXIT_FAILURE);
     }
 }
+FILE* svkMain::__executeasync(string cmd){
+
+    printf("        __executeasync %s\n",cmd.c_str());
+    FILE* f=popen(cmd.c_str(),"r");
+    if(f==NULL){
+        syslog(LOG_ERR, "Ошибка открытия процесса: %s", strerror(errno));
+        return NULL;
+    }
+    return f;
+}
+
 int svkMain::__execute(std::string cmd, string *reply)
 {    
     printf("        __execute %s\n",cmd.c_str());
     *reply = "";
     FILE* f=popen(cmd.c_str(),"r");
     if(errno!=0||f==NULL){
-        syslog(LOG_ERR, "Ошибка открытия процесса pop3getи: %s", strerror(errno));
+        syslog(LOG_ERR, "Ошибка открытия процесса: %s", strerror(errno));
         return WEXITSTATUS(pclose(f));
     }
     int fd = fileno(f);
@@ -87,72 +99,150 @@ int svkMain::__execute(std::string cmd, string *reply)
     }
 }
 
+void svkMain::poolProcessing(vector<string> lines,string sem_wait,string sem_count,int instances){
+    FILE* fi[instances];
+    string replies[instances];
+    while(lines.size()){
+        sem_t *sem;
+        sem_t *sem_c;
+        sem_unlink(sem_wait.c_str());
+        sem_unlink(sem_count.c_str());
+        sem = sem_open(sem_wait.c_str(), O_CREAT, S_IRWXU,0);
+        sem_c = sem_open(sem_count.c_str(), O_CREAT, S_IRWXU,0);
+        for(int i=0;i<instances;++i)
+            fi[i]=NULL;
+        int fd=0;
+        int activeinstances=0;
+        for(int i=0;i<instances&&lines.size();++i,++activeinstances){
+            fi[i] = __executeasync(lines.back());
+            lines.pop_back();
+            if(fileno(fi[i])>fd)
+                fd=fileno(fi[i]);
+        }
+        int val=0;
+        while(val<activeinstances)
+            sem_getvalue(sem_c, &val);
+        for(int i=0;i<activeinstances;++i)
+            sem_post(sem);
+        char* buf[BUFSIZ];
+        sem_close(sem_c);
+        sem_close(sem);
+        sem_unlink(sem_wait.c_str());
+        sem_unlink(sem_count.c_str());
+
+        fd_set set;
+        struct timeval t;
+        t.tv_sec=10;
+        while(1){
+            FD_ZERO(&set);
+            for(int i=0;i<instances;++i)
+                if(fi[i]!=NULL)
+                    FD_SET(fileno(fi[i]),&set);
+            select(fd+1,&set,NULL,NULL, &t);
+            bool isactive=false;
+            for(int i=0;i<instances;++i){
+                if(fi[i]!=NULL&&FD_ISSET(fileno(fi[i]),&set)){
+                    int len = read(fileno(fi[i]),buf,BUFSIZ);
+                    if(len){
+                        replies[i]+=std::string((char*)buf);
+                        isactive=true;
+                    }
+                    else fi[i]=NULL;
+                }
+            }
+            if(!isactive)
+                break;
+        }// wait for finished
+    }// whole messages
+}
 int svkMain::stage_pop3(string configRoot){
     std::ostringstream oss;
     oss<<BINPATH<<"svkpop3list "<<configRoot;
     std::string cmd = oss.str();
-    std::string list="";
+    std::string list="";    
     int r = __execute(cmd,&list);
-    if(r!=0){
+    if(r!=0)
         return r;
-    }else{
-        //printf("%s",list.c_str());
-    }
+    int instances=xmlReadInt("pop3/@instances",1);
+    FILE* fi[instances];
+    string replies[instances];
     vector<string> lines = splitString(list);
-    //printf("%s\n",list.c_str());
-    for(auto it = lines.rbegin();it!=lines.rend(); ++it){
-        oss.str("");
-        oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< (*it).c_str();
-        cmd = oss.str();
-        //printf("%s\n",cmd.c_str());
-        r = __execute(cmd,&list);
-        if(r!=0){
-            // TODO analize return code
+    while(lines.size()){
+        sem_t *sem;
+        sem_t *sem_c;
+
+        sem_unlink("/svkpop3sem_wait");
+        sem_unlink("/svkpop3sem_count");
+        sem = sem_open("/svkpop3sem_wait", O_CREAT, S_IRWXU,0);
+        sem_c = sem_open("/svkpop3sem_count", O_CREAT, S_IRWXU,0);
+
+        for(int i=0;i<instances;++i)
+            fi[i]=NULL;
+        int fd=0;
+        int activeinstances=0;
+        for(int i=0;i<instances&&lines.size();++i,++activeinstances){
+            oss.str("");
+            oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< lines.back().c_str();
+            lines.pop_back();
+            cmd = oss.str();
+            fi[i] = __executeasync(cmd);
+            if(fileno(fi[i])>fd)
+                fd=fileno(fi[i]);
         }
-    }
-    return r;
+        int val=0;
+        while(val<activeinstances)
+            sem_getvalue(sem_c, &val);
+        for(int i=0;i<activeinstances;++i)
+            sem_post(sem);
+        char* buf[BUFSIZ];
+        sem_close(sem_c);
+        sem_close(sem);
+        sem_unlink("/svkpop3sem_wait");
+        sem_unlink("/svkpop3sem_count");
+
+        fd_set set;
+        struct timeval t;
+        t.tv_sec=10;
+        while(1){
+            FD_ZERO(&set);
+            for(int i=0;i<instances;++i)
+                if(fi[i]!=NULL)
+                    FD_SET(fileno(fi[i]),&set);
+            select(fd+1,&set,NULL,NULL, &t);
+            bool isactive=false;
+            for(int i=0;i<instances;++i){
+                if(fi[i]!=NULL&&FD_ISSET(fileno(fi[i]),&set)){
+                    int len = read(fileno(fi[i]),buf,BUFSIZ);
+                    if(len){
+                        replies[i]+=std::string((char*)buf);
+                        isactive=true;
+                    }
+                    else fi[i]=NULL;
+                }
+            }
+            if(!isactive)
+                break;
+        }// wait for finished
+    }// whole messages
+    return 0;
 }
 
 int svkMain::stage_smtp(string configRoot)
 {    
     string source=xmlReadString("@source");
-    string sent=xmlReadString("@sent");
+
+    vector<string> lines;
     if(source.empty())
         return 0;
-    // Maildir
-    //FILE* lock=NULL;
-    //if(access( (sent+"dovecot-uidlist.lock").c_str(), F_OK ) != -1){
-    //    syslog(LOG_ERR,"Найдена блокировка %s. Ожидаем освобождения ресурса",(sent+"dovecot-uidlist.lock").c_str());
-    //    while((lock = fopen((sent+"dovecot-uidlist.lock").c_str(), "w"))==NULL)
-    //        sleep(1);
-    //}
-    //fprintf(lock,"locked");
-    //
-    //****************
     source+="cur/";
     const fs::path dir{source};
     for(const auto& entry: fs::directory_iterator(dir)){
         if (!entry.is_regular_file())
             continue;
         const auto filenameStr = entry.path().filename().string();
-        std::ostringstream oss;
-        oss.str("");        
         string filepath=source+filenameStr;
-        oss<<BINPATH<<"svksmtp "<<configRoot<<" "<< filepath;
-        string cmd = oss.str();
-        string list="";
-        int r = __execute(cmd,&list);
-        if(r!=0){
-            // TODO analize return code
-        }else{
-            if(!sent.empty())
-                if(rename(filepath.c_str(),string(sent+"cur/"+filenameStr).c_str())!=0)
-                    syslog(LOG_ERR,"Ошибка переноса письма %s в %s (%s)",filepath.c_str(),string(sent+filenameStr).c_str(),strerror(errno));
-        }
+        lines.push_back(filepath);
     }
-    //fclose(lock);
-    //unlink((sent+"dovecot-uidlist.lock").c_str());
-
     return 0;
 }
 
@@ -174,6 +264,31 @@ int svkMain::stage_compose(string configRoot)
     std::string list="";
     int r = __execute(cmd,&list);
     return r;
+}
+
+int svkMain::stage_extract(string configRoot)
+{
+    string source=xmlReadString("@in");
+    if(source.empty())
+        return -1;
+    source+="cur/";
+    const fs::path dir{source};
+    for(const auto& entry: fs::directory_iterator(dir)){
+        if (!entry.is_regular_file())
+            continue;
+        const auto filenameStr = entry.path().filename().string();
+        std::ostringstream oss;
+        oss.str("");
+        string filepath=source+filenameStr;
+        oss<<BINPATH<<"svkextract "<<configRoot<<" "<< filepath;
+        string cmd = oss.str();
+        string list="";
+        int r = __execute(cmd,&list);
+        if(r!=0)
+            ;// TODO analize return code
+
+    }
+    return 0;
 };
 
 int svkMain::run()
@@ -194,34 +309,61 @@ int svkMain::run()
         printf("Обработка %s\n",path.c_str());
         string desc = xmlReadString("description/text()");
         syslog(LOG_INFO,"Этап %i. %s",stage,desc.c_str());
-        if(xmlReadString("@type")=="pop3"){
-            stage_pop3(path);
+        string t = xmlReadString("@type");
+        int res=0;
+        switch (stages[t]) {
+            case stageTypes::pop3:
+                res = stage_pop3(path);
+                break;
+            case stageTypes::telnet:
+                res = stage_telnet(path);
+                break;
+            case stageTypes::compose:
+                res = stage_compose(path);
+                break;
+            case stageTypes::smtp:
+                {
+                    int smtpCount = 0;
+                    try{
+                        smtpCount = stoi(configGetNodeSet(string("count("+path+"smtp"+")").c_str()));
+                    }
+                    catch (std::invalid_argument const& ex)
+                    {
+                        syslog(LOG_ERR,"Не указаны узлы отправки smtp");
+                    }
+                    for(int smtp=0;smtp<smtpCount;smtp++){
+                        string xp = path+"smtp["+to_string(smtp+1)+"]/";
+                        configSetRoot(xp.c_str());
+                        printf("    Обработка %s\n",xp.c_str());
+                        if(stage_smtp(xp)!=0)
+                            ;// TODO: check errors
+                    }
+                }
+                break;
+            case stageTypes::extract:
+                {
+                    int mdaCount = 0;
+                    try{
+                        mdaCount = stoi(configGetNodeSet(string("count("+path+"source"+")").c_str()));
+                    }
+                    catch (std::invalid_argument const& ex)
+                    {
+                        syslog(LOG_ERR,"Не указаны узлы отправки smtp");
+                    }
+                    for(int rule=0;rule<mdaCount;rule++){
+                        string xp = path+"source["+to_string(rule+1)+"]/";
+                        configSetRoot(xp.c_str());
+                        res |= stage_smtp(xp);
+                    }
+                }
+                break;
+            default:
+                syslog(LOG_ERR, "Ошибка кофигурации. Неизвестный тип шага '%s'",t.c_str());
+                break;
         }
-        else if(xmlReadString("@type")=="telnet"){
-            if(stage_telnet(path)!=0)
-                    ;// TODO: check errors
-        }
-        else if(xmlReadString("@type")=="compose"){
-            if(stage_compose(path)!=0)
-                    ;// TODO: check errors
-        }
-        else if(xmlReadString("@type")=="smtp"){
-            int smtpCount = 0;
-            try{
-                smtpCount = stoi(configGetNodeSet(string("count("+path+"smtp"+")").c_str()));
-            }
-            catch (std::invalid_argument const& ex)
-            {
-                syslog(LOG_ERR,"Не указаны узлы отправки smtp");
-            }
-            for(int smtp=0;smtp<smtpCount;smtp++){
-                string xp = path+"smtp["+to_string(smtp+1)+"]/";
-                configSetRoot(xp.c_str());
-                printf("    Обработка %s\n",xp.c_str());
-                if(stage_smtp(xp)!=0)
-                    ;// TODO: check errors
-            }
-        }
+        if(res!=0)
+            ;//TODO: check result
+
     }
     configClose();    
     syslog(LOG_INFO,"=================================================");

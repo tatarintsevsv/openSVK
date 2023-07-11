@@ -16,3 +16,11 @@ else()
 endif()
 
 add_executable(svkpop3get main.c)
+
+find_package(Threads REQUIRED)
+if(THREADS_HAVE_PTHREAD_ARG)
+  target_compile_options(svkpop3get PUBLIC "-pthread")
+endif()
+if(CMAKE_THREAD_LIBS_INIT)
+  target_link_libraries(svkpop3get "${CMAKE_THREAD_LIBS_INIT}")
+endif()

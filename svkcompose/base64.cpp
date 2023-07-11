@@ -60,8 +60,9 @@ std::vector<BYTE> base64_decode(std::string const& encoded_string) {
   BYTE char_array_4[4], char_array_3[3];
   std::vector<BYTE> ret;
 
-  while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-    char_array_4[i++] = encoded_string[in_]; in_++;
+  while (in_len-- && ( encoded_string[in_] != '=')) {    
+    if(is_base64(encoded_string[in_]))
+        char_array_4[i++] = encoded_string[in_]; in_++;
     if (i ==4) {
       for (i = 0; i <4; i++)
         char_array_4[i] = base64_chars.find(char_array_4[i]);

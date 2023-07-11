@@ -10,6 +10,7 @@
 #include <sys/select.h>
 #include <sstream>
 #include <vector>
+#include "../svkcompose/base64.h"
 
 using namespace std;
 
@@ -89,10 +90,10 @@ void svkExtract::parseHeader(dict* headers){
 
 void svkExtract::readPart(string boundary, mimepart *part)
 {
-    part->start = lseek(fd, 0, SEEK_CUR);
-    part->end = 0;
     part->headers.clear();
     parseHeader(&part->headers);
+    part->start = lseek(fd, 0, SEEK_CUR);
+    part->end = part->start;
     string prevline=boundary;
     string line;
     char* s=(char*)malloc(1024);s[0]='-';s[1]='\0';
@@ -102,11 +103,8 @@ void svkExtract::readPart(string boundary, mimepart *part)
         line = s;
         if(len==-1)
             break;
-        //cout<<line<<endl;
     }while((!prevline.empty())&&(line!=string("--"+boundary))&&(line!=string("--"+boundary+"--")));
-    part->end = lseek(fd, 0, SEEK_CUR);
-    //if(line==string("--"+boundary+"--"))
-    //    part->end = 0;
+    part->end = lseek(fd, 0, SEEK_CUR) - line.length() - 4;
     free(s);
 }
 
@@ -114,19 +112,31 @@ int svkExtract::run(char* configRoot, char* filename)
 {
     openlog("SVKextract",LOG_CONS|LOG_PID,LOG_MAIL);
     configInit(CONFIG_XML,"SVKextract");
-    configSetRoot("configRoot");    
+    configSetRoot(configRoot);
 
     if((fd=open(filename,O_RDONLY))<=0){
         syslog(LOG_ERR,"Ошибка открытия файла %s (%s)",filename,strerror(errno));
         return -2;
+    }    
+    //fd=open(filename,O_RDONLY);
+    parseHeader(&headers);
+    string xp = "rule[contains('"+headers["From"]+"',@from)]/";
+    string extractto = xmlReadString(xp+"@extractto");
+    string out = xmlReadString(xp+"@out");
+    // --> //config/stage[3]/source[1]/rule[contains('fns440test@ext-gate.svk.mskgtu.cbr.ru',@from)]/@extractto
+    if(extractto.length()==0){
+        close(fd);
+        closelog();
+        return 0;
     }
     syslog(LOG_INFO,"Обработка письма %s",filename);
-    fd=open(filename,O_RDONLY);
-    parseHeader(&headers);
+    // Debug headers output
+
     syslog(LOG_INFO,"[От]: %s",headers["From"].c_str());
     syslog(LOG_INFO,"[Кому]: %s",headers["To"].c_str());
     syslog(LOG_INFO,"[Тема]: %s",headers["Subject"].c_str());
     cout<<"================================\n"<<"from: "<<headers["From"]<<endl<<"to: "<<headers["To"]<<endl<<"subj: "<<headers["Subject"]<<endl<<"================================\n";
+
     int p=headers["Content-Type"].find("boundary=")+10;
     string boundary=headers["Content-Type"].substr(p);
     boundary=boundary.substr(0,boundary.find("\""));
@@ -140,21 +150,55 @@ int svkExtract::run(char* configRoot, char* filename)
     mimepart part;
     do{
 
-        readPart("boundary",&part);
-        //cout<<endl;
-        //for(pair<string, string> h : part.headers){
-        //    cout<<"["<<h.first<<"] "<<h.second<<endl;
-        //}
+        readPart(boundary,&part);
         if(part.headers.find("Content-Disposition")!=part.headers.end()){
             int p=part.headers["Content-Disposition"].find("filename=")+10;
             string attachment=part.headers["Content-Disposition"].substr(p);
             attachment=attachment.substr(0,attachment.find("\""));
             cout<<"Найдена MIME часть с вложением "<<attachment<<endl;
+            int c=0;
+            string dest = extractto+attachment;
+            while(access( dest.c_str(), F_OK ) != -1)
+                dest=extractto+to_string(++c)+"_"+attachment;
+            int f;
+            if((f=open(dest.c_str(),O_CREAT|O_WRONLY))<=0){
+                syslog(LOG_ERR,"Ошибка открытия файла для записи %s (%s)",dest.c_str(),strerror(errno));
+                return -2;
+            }
+            int sz=part.end-part.start;
+            char* content=(char*)malloc(sz);
+            off_t curr_p=lseek(fd, 0, SEEK_CUR);
+            lseek(fd, part.start, SEEK_SET);
+            read(fd,content,sz);
+            //Content-Transfer-Encoding: base64
+            string cte = part.headers["Content-Transfer-Encoding"];
+            for (auto & c: cte) c = toupper(c);
+            if(cte=="BASE64"){
+                vector<BYTE> c = base64_decode(content);
+                copy(c.begin(), c.end(), content);
+                write(f,content,c.size());
+            }else{
+                write(f,content,sz);
+            }
+            close(f);
+            free(content);
+            lseek(fd, curr_p, SEEK_SET);
+            //dest = extractto+
+            //( access( name.c_str(), F_OK ) != -1 )
         }
 
 
         //cout<<"-----------------------------\n"<<part.end-part.start<<" bytes\n";
-    }while(part.end!=part.start);
+    }while(part.end+4!=part.start);
+
+    if(out.length()){
+        out+="cur"+string(filename).substr(string(filename).find_last_of("/"));
+        if(rename(filename,out.c_str())!=0){
+                syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",out.c_str(),strerror(errno));
+                return errno;
+            };
+    }
+
 
     close(fd);
     closelog();

@@ -46,19 +46,14 @@ int main(int argc, char *argv[])
     if(argc<3){
         return -2;
     }
-    f=open(argv[2],O_RDONLY);
-    if(f<=0){
-        syslog(LOG_ERR,"Ошибка открытия файла '%s' (%s)",argv[2],strerror(errno));
-        return -3;
-    }
     char *buf = NULL;
     char* facility;
     char* host;
     char* user;
-    char* password;
-    char* source;
+    char* password;    
     char* from;
     char* recipients;
+
 
     configSetRoot(argv[1]);
     facility=configReadString("../@facility","SVK_SMTP");
@@ -66,19 +61,29 @@ int main(int argc, char *argv[])
         return -4;
     closelog();
     openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
+    char* filename=malloc(BUFSIZE);
+    buf = configReadString("@source","./");
+    printf(filename,"%s/%s",buf,argv[2]);
+    f=open(filename,O_RDONLY);
+    free(buf);
+    if(f<=0){
+        syslog(LOG_ERR,"Ошибка открытия файла '%s' (%s)",filename,strerror(errno));
+        free(filename);
+        return -3;
+    }
+
     syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);
     buf = configReadString("@host","");
     host = malloc(strlen(buf)+8);
     sprintf(host,"smtp://%s",buf);
     free(buf);
     user=configReadString("@username","");
-    password = configReadString("@password","");
-    source = configReadString("@source","");
+    password = configReadString("@password","");    
     from = configReadString("@from","");
     recipients = configReadString("@recipients","");
     buf = NULL;
     struct stat stat_buf;
-        stat(argv[2], &stat_buf);
+        stat(filename, &stat_buf);
     int size = stat_buf.st_size;
     syslog(LOG_INFO,"Отправка '%s' (%i байт) от %s. Корреспонденты %s",argv[2],size,from,recipients);
 
@@ -118,6 +123,15 @@ int main(int argc, char *argv[])
             curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &code);
             syslog(LOG_INFO,"Отправка '%s' завершена. Скорость %.0f байт/сек в течение %.2f сек. Результат: %i", argv[2],speed,time,code);
+            buf=configReadString("@sent","");
+            if(strlen(buf)>0){
+                char* sent=malloc(BUFSIZE);
+                printf(sent,"%scur/%s",buf,argv[2]);
+                if(rename(filename,sent)!=0)
+                    syslog(LOG_ERR,"Ошибка переноса письма %s в %s (%s)",filename,sent,strerror(errno));
+                free(sent);
+            };
+            free(buf);
         }
         curl_easy_cleanup(curl);
     };
@@ -125,8 +139,9 @@ int main(int argc, char *argv[])
     free(host);
     free(user);
     free(password);
-    free(source);
+
     free(from);
     free(recipients);
+    free(filename);
     return (int)res;
 }

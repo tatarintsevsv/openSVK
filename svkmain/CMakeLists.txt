@@ -19,3 +19,11 @@ else()
 endif()
 
 add_executable(svkmain main.cpp svkmain.h svkmain.cpp)
+
+find_package(Threads REQUIRED)
+if(THREADS_HAVE_PTHREAD_ARG)
+  target_compile_options(svkmain PUBLIC "-pthread")
+endif()
+if(CMAKE_THREAD_LIBS_INIT)
+  target_link_libraries(svkmain "${CMAKE_THREAD_LIBS_INIT}")
+endif()

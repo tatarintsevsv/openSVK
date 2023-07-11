@@ -18,4 +18,4 @@ else()
     link_libraries("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libconfig.so")
 endif()
 
-add_executable(svkextract main.cpp svkextract.h svkextract.cpp)
+add_executable(svkextract main.cpp svkextract.h svkextract.cpp ../svkcompose/base64.cpp ../svkcompose/base64.h)
