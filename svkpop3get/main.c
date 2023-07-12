@@ -61,11 +61,14 @@ int main(int argc, char *argv[])
     char filepath[BUFSIZE*2]={0};
     bool uidl;
     bool keep;
-    configSetRoot(argv[1]);
-    facility=configReadString("@facility","SVK_POP3");
     if(!configInit(CONFIG_XML,"pop3"))
         return 1;
-    openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
+    configSetRoot(argv[1]);
+    facility=configReadString("@facility","SVK_POP3");
+    if(strlen(facility)){
+        closelog();
+        openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
+    }
     syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);
 
     buf = configReadString("pop3/@host","");
@@ -110,7 +113,7 @@ int main(int argc, char *argv[])
             //    syslog(LOG_ERR,"обнаружено несоответствие ID сообщения. %s. Ожидается %s",buffer,argv[2]);
             //}
             free(buffer);
-
+#ifndef disablesync
             // sem sync
             sem_t *sem;
             sem_t *sem_c;
@@ -138,6 +141,7 @@ int main(int argc, char *argv[])
             sem_close(sem);
             sem_close(sem_c);
             syslog(LOG_INFO,"Синхронизация завершена");
+#endif
         }        
         // Receive message
         syslog(LOG_INFO,"[%i] Получение сообщения %s",sem_counter_val,argv[2]);
@@ -195,17 +199,17 @@ int main(int argc, char *argv[])
         }
         curl_easy_cleanup(curl);
     }
-    char newfn[BUFSIZE*2];
-    sprintf (newfn, "%scur/%s",maildir,filename);
+    //char newfn[BUFSIZE*2];
+    //sprintf (newfn, "%scur/%s",maildir,filename);
     free(facility);
     free(host);
     free(user);
     free(password);
     free(maildir);
-    if(rename(filepath,newfn)!=0){
-        syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",newfn,strerror(errno));
-        return errno;
-    };
-    printf("%s\n", res==CURLE_OK?newfn:"-");
+    //if(rename(filepath,newfn)!=0){
+    //    syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",newfn,strerror(errno));
+    //    return errno;
+    //};
+    printf("%s\n", res==CURLE_OK?filename:"-");
     return (int)res;
 }

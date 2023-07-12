@@ -23,7 +23,6 @@ struct mimepart{
 class svkExtract{
 private:
     int fd;
-    int __execute(std::string cmd, string *reply);
     std::string xmlReadString(string path,string def=""){
         char* r = configReadString(path.c_str(),def.c_str());
         std::string res = std::string(r);

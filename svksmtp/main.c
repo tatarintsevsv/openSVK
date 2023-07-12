@@ -43,6 +43,7 @@ static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *
 
 int main(int argc, char *argv[])
 {
+
     srand(time(NULL));
     openlog("SVK_SMTP",LOG_CONS|LOG_PID,LOG_MAIL);
     if(argc<3){
@@ -55,7 +56,9 @@ int main(int argc, char *argv[])
     char* password;    
     char* from;
     char* recipients;
+    char* sent;
     // sem sync
+#ifndef disablesync
     sem_t *sem;
     sem_t *sem_c;
     sem_c = sem_open("/svksmtpsem_count", O_RDWR);
@@ -81,20 +84,22 @@ int main(int argc, char *argv[])
     sem_close(sem);
     sem_close(sem_c);
     syslog(LOG_INFO,"Синхронизация завершена");
+#endif
 
-
-
-    configSetRoot(argv[1]);
-    facility=configReadString("../@facility","SVK_SMTP");
     if(!configInit(CONFIG_XML,"smtp"))
         return -4;
-    closelog();
-    openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
-    char* filename=malloc(BUFSIZE);
+    configSetRoot(argv[1]);
+    facility=configReadString("../@facility","SVK_SMTP");    
+    if(strlen(facility)){
+        closelog();
+        openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
+    }
+    sent=configReadString("@sent","");
+    char* filename=malloc(BUFSIZE);    
     buf = configReadString("@source","./");
-    printf(filename,"%s/%s",buf,argv[2]);
-    f=open(filename,O_RDONLY);
+    sprintf(filename,"%scur/%s",buf,argv[2]);
     free(buf);
+    f=open(filename,O_RDONLY);
     if(f<=0){
         syslog(LOG_ERR,"Ошибка открытия файла '%s' (%s)",filename,strerror(errno));
         free(filename);
@@ -120,7 +125,7 @@ int main(int argc, char *argv[])
     CURLcode res = CURLE_OK;
     curl = curl_easy_init();
     if(curl) {
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         curl_easy_setopt(curl, CURLOPT_URL, host);
         curl_easy_setopt(curl, CURLOPT_USERNAME, user);
         curl_easy_setopt(curl, CURLOPT_PASSWORD, password);
@@ -152,19 +157,27 @@ int main(int argc, char *argv[])
             curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &code);
             syslog(LOG_INFO,"Отправка '%s' завершена. Скорость %.0f байт/сек в течение %.2f сек. Результат: %i", argv[2],speed,time,code);
-            buf=configReadString("@sent","");
-            if(strlen(buf)>0){
-                char* sent=malloc(BUFSIZE);
-                printf(sent,"%scur/%s",buf,argv[2]);
-                if(rename(filename,sent)!=0)
-                    syslog(LOG_ERR,"Ошибка переноса письма %s в %s (%s)",filename,sent,strerror(errno));
-                free(sent);
+
+            if(sent!=NULL&&strlen(sent)>0){
+                char* s=malloc(BUFSIZE);
+                sprintf(s,"%scur/%s",sent,argv[2]);
+                if(rename(filename,s)!=0){
+                    syslog(LOG_ERR,"Ошибка переноса письма %s в %s (%s)",filename,s,strerror(errno));
+                }else{
+                    syslog(LOG_INFO,"Письмо перенесено в %s",s);
+                }
+                free(s);
+            }else{
+                syslog(LOG_INFO,"Письмо удалено");
+                unlink(filename);
             };
             free(buf);
         }
         curl_easy_cleanup(curl);
     };
     free(facility);
+    free(sent);
+
     free(host);
     free(user);
     free(password);

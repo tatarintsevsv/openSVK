@@ -71,7 +71,7 @@ int svkMain::__execute(std::string cmd, string *reply)
     printf("        __execute %s\n",cmd.c_str());
     *reply = "";
     FILE* f=popen(cmd.c_str(),"r");
-    if(errno!=0||f==NULL){
+    if(f==NULL){
         syslog(LOG_ERR, "Ошибка открытия процесса: %s", strerror(errno));
         return WEXITSTATUS(pclose(f));
     }
@@ -93,10 +93,11 @@ int svkMain::__execute(std::string cmd, string *reply)
             };
         }
         if(errno!=0){
-            syslog(LOG_ERR,"POPEN");
+            //syslog(LOG_ERR,"POPEN error %s",strerror(errno));
             return WEXITSTATUS(pclose(f));
         }
     }
+    return 0;
 }
 
 void svkMain::poolProcessing(vector<string> lines,string sem_wait,string sem_count,int instances){
@@ -167,7 +168,7 @@ int svkMain::stage_pop3(string configRoot){
     FILE* fi[instances];
     string replies[instances];    
     vector<string> lines;// = splitString(list);
-    for(string l: splitString(list)){
+    for(const auto &l: splitString(list)){
         oss.str("");
         oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< l;
         lines.push_back(oss.str());
@@ -185,18 +186,34 @@ int svkMain::stage_smtp(string configRoot)
     vector<string> lines;
     if(source.empty())
         return 0;
-    source+="cur/";
-    const fs::path dir{source};
+
+    const fs::path dir{source+"cur/"};
     for(const auto& entry: fs::directory_iterator(dir)){
         if (!entry.is_regular_file())
             continue;
         const auto filenameStr = entry.path().filename().string();
-        string filepath=source+filenameStr;
+        string filepath=source+"cur/"+filenameStr;
         oss.str("");
         oss<<BINPATH<<"svksmtp "<<configRoot<<" "<<filenameStr;
         lines.push_back(oss.str());
     }
+    string lockfile=source+"dovecot-uidlist.lock";
+    struct timespec ts_start;
+    clock_gettime(CLOCK_REALTIME, &ts_start);
+    struct timespec ts_now;
+    while(access(lockfile.c_str(),F_OK)==0){
+        clock_gettime(CLOCK_REALTIME, &ts_now);
+        if(ts_now.tv_sec>ts_start.tv_sec+60){
+            syslog(LOG_ERR,"Блокировка не снята в течение 60сек. %s",lockfile.c_str());
+            return 1;
+        }
+    };
+    int fl=open(lockfile.c_str(),O_RDWR|O_CREAT);
+    write(fl,"LOCKED",6);
+    close(fl);
     poolProcessing(lines,"/svksmtpsem_wait","/svksmtpsem_count",instances);
+
+    unlink(lockfile.c_str());
     return 0;
 }
 
@@ -225,22 +242,35 @@ int svkMain::stage_extract(string configRoot)
     string source=xmlReadString("@in");
     if(source.empty())
         return -1;
-    source+="cur/";
+    source+="tmp/";
     const fs::path dir{source};
     for(const auto& entry: fs::directory_iterator(dir)){
         if (!entry.is_regular_file())
             continue;
         const auto filenameStr = entry.path().filename().string();
+        string filepath=source+filenameStr;
         std::ostringstream oss;
         oss.str("");
-        string filepath=source+filenameStr;
         oss<<BINPATH<<"svkextract "<<configRoot<<" "<< filepath;
         string cmd = oss.str();
         string list="";
         int r = __execute(cmd,&list);
         if(r!=0)
             ;// TODO analize return code
-
+    }
+    source=xmlReadString("@in");
+    const fs::path dir2{source+"tmp/"};
+    for(const auto& entry: fs::directory_iterator(dir2)){
+        if (!entry.is_regular_file())
+            continue;
+        const auto filepath = source+"tmp/"+entry.path().filename().string();
+        string out=source+"cur/"+entry.path().filename().string();
+        if(rename(filepath.c_str(),out.c_str())!=0){
+                syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",out.c_str(),strerror(errno));
+                return errno;
+        }else {
+            syslog(LOG_ERR,"Не найдено правила для обработки письма. Перенесено в %s",out.c_str());
+        }
     }
     return 0;
 };
@@ -307,7 +337,7 @@ int svkMain::run()
                     for(int rule=0;rule<mdaCount;rule++){
                         string xp = path+"source["+to_string(rule+1)+"]/";
                         configSetRoot(xp.c_str());
-                        res |= stage_smtp(xp);
+                        res |= stage_extract(xp);
                     }
                 }
                 break;
@@ -319,8 +349,7 @@ int svkMain::run()
             ;//TODO: check result
 
     }
-    configClose();    
-    syslog(LOG_INFO,"=================================================");
+    configClose();
     syslog(LOG_INFO,"обработка завершена");
     closelog();
     return 0;
