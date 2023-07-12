@@ -79,25 +79,25 @@ int svkMain::__execute(std::string cmd, string *reply)
     fd_set set;
     struct timeval t;
     t.tv_sec=60;
-    char buf[BUFSIZ];
+    char* buf=(char*)malloc(8196);
     while(1){        
         FD_ZERO(&set);
         FD_SET(fd,&set);
         select(fd+1,&set,NULL,NULL, &t);
         if(FD_ISSET(fd,&set)){
-            int len = read(fd,buf,BUFSIZ);
+            int len = read(fd,buf,8196);
             if(len){
                 *reply+=std::string((char*)buf);
             }else{
                 return WEXITSTATUS(pclose(f));
             };
         }
-        if(errno!=0){
-            //syslog(LOG_ERR,"POPEN error %s",strerror(errno));
-            return WEXITSTATUS(pclose(f));
-        }
+        //if(errno!=0){
+        //    //syslog(LOG_ERR,"POPEN error %s",strerror(errno));
+        //    return WEXITSTATUS(pclose(f));
+        //}
     }
-    return 0;
+    return WEXITSTATUS(pclose(f));
 }
 
 void svkMain::poolProcessing(vector<string> lines,string sem_wait,string sem_count,int instances){
@@ -176,6 +176,20 @@ int svkMain::stage_pop3(string configRoot){
     poolProcessing(lines,"/svkpop3sem_wait","/svkpop3sem_count",instances);
 
     return 0;
+}
+
+int svkMain::stage_execute(string configRoot)
+{
+    string cmd=xmlReadString("execute/@command");
+    string reply;
+    syslog(LOG_INFO,"Запуск внешней программы %s",cmd.c_str());
+    int res = __execute(cmd,&reply);
+    if(xmlReadInt("execute/@verbose",0)==1){
+        for(const auto &s:splitString(reply))
+            syslog(LOG_INFO,"%s",s.c_str());
+    };
+    syslog(LOG_INFO,"Внешняя программа завершена с кодом %i (%s)",res,res?strerror(errno):"Ok");
+    return res;
 }
 
 int svkMain::stage_smtp(string configRoot)
@@ -296,15 +310,14 @@ int svkMain::run()
         string t = xmlReadString("@type");
         int res=0;
         switch (stages[t]) {
+            case stageTypes::execute:
+                res = stage_execute(path); break;
             case stageTypes::pop3:
-                res = stage_pop3(path);
-                break;
+                res = stage_pop3(path); break;
             case stageTypes::telnet:
-                res = stage_telnet(path);
-                break;
+                res = stage_telnet(path); break;
             case stageTypes::compose:
-                res = stage_compose(path);
-                break;
+                res = stage_compose(path); break;
             case stageTypes::smtp:
                 {
                     int smtpCount = 0;
@@ -332,7 +345,7 @@ int svkMain::run()
                     }
                     catch (std::invalid_argument const& ex)
                     {
-                        syslog(LOG_ERR,"Не указаны узлы отправки smtp");
+                        syslog(LOG_ERR,"Не указаны правила обработки писем");
                     }
                     for(int rule=0;rule<mdaCount;rule++){
                         string xp = path+"source["+to_string(rule+1)+"]/";

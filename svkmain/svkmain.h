@@ -11,12 +11,13 @@
 #define BINPATH "./"
 using  namespace std;
 
-enum class stageTypes{telnet,pop3,smtp,compose,extract};
+enum class stageTypes{telnet,pop3,smtp,compose,extract,execute};
 static map<string,stageTypes> stages {{"telnet",stageTypes::telnet},
                                       {"pop3",stageTypes::pop3},
                                       {"smtp",stageTypes::smtp},
                                       {"compose",stageTypes::compose},
-                                      {"extract",stageTypes::extract}};
+                                      {"extract",stageTypes::extract},
+                                      {"execute",stageTypes::execute}};
 
 
 namespace std{
@@ -26,6 +27,7 @@ class svkmain;
 class svkMain{
 protected:
     int stage_pop3(string configRoot);
+    int stage_execute(string configRoot);
     int stage_smtp(string configRoot);
     int stage_telnet(string configRoot);
     int stage_compose(string configRoot);
