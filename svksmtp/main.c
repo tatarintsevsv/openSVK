@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <semaphore.h>
+#include <time.h>
 #include "../config/config.h"
 
 #define CONFIG_XML "./config.xml"
@@ -18,7 +20,7 @@
 char* buffer = NULL;
 size_t bufferSize = 0;
 int f = 0;
-
+int sem_counter_val;
 static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
     if(size * nmemb!=0){
         char* buf=malloc(size * nmemb+1);
@@ -53,6 +55,33 @@ int main(int argc, char *argv[])
     char* password;    
     char* from;
     char* recipients;
+    // sem sync
+    sem_t *sem;
+    sem_t *sem_c;
+    sem_c = sem_open("/svksmtpsem_count", O_RDWR);
+    if(sem_c==SEM_FAILED){
+        syslog(LOG_ERR,"Ошибка открытия семафора svksmtpsem_count %s",strerror(errno));
+        return -1;
+    }
+    sem_post(sem_c);
+    sem = sem_open("/svksmtpsem_wait", O_RDWR);
+    if(sem==SEM_FAILED){
+        syslog(LOG_ERR,"Ошибка открытия семафора svksmtpsem_wait %s",strerror(errno));
+        return -1;
+    }
+    sem_getvalue(sem_c, &sem_counter_val);
+    syslog(LOG_INFO,"Ожидание синхронизации потоков #%i",sem_counter_val);
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_sec+=60;
+    if(sem_timedwait(sem, &ts)==-1){
+        syslog(LOG_INFO,"Ошибка синхронизации %s",strerror(errno));
+        return -1;
+    }
+    sem_close(sem);
+    sem_close(sem_c);
+    syslog(LOG_INFO,"Синхронизация завершена");
+
 
 
     configSetRoot(argv[1]);

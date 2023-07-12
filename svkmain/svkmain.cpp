@@ -165,72 +165,23 @@ int svkMain::stage_pop3(string configRoot){
         return r;
     int instances=xmlReadInt("pop3/@instances",1);
     FILE* fi[instances];
-    string replies[instances];
-    vector<string> lines = splitString(list);
-    while(lines.size()){
-        sem_t *sem;
-        sem_t *sem_c;
+    string replies[instances];    
+    vector<string> lines;// = splitString(list);
+    for(string l: splitString(list)){
+        oss.str("");
+        oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< l;
+        lines.push_back(oss.str());
+    }
+    poolProcessing(lines,"/svkpop3sem_wait","/svkpop3sem_count",instances);
 
-        sem_unlink("/svkpop3sem_wait");
-        sem_unlink("/svkpop3sem_count");
-        sem = sem_open("/svkpop3sem_wait", O_CREAT, S_IRWXU,0);
-        sem_c = sem_open("/svkpop3sem_count", O_CREAT, S_IRWXU,0);
-
-        for(int i=0;i<instances;++i)
-            fi[i]=NULL;
-        int fd=0;
-        int activeinstances=0;
-        for(int i=0;i<instances&&lines.size();++i,++activeinstances){
-            oss.str("");
-            oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< lines.back().c_str();
-            lines.pop_back();
-            cmd = oss.str();
-            fi[i] = __executeasync(cmd);
-            if(fileno(fi[i])>fd)
-                fd=fileno(fi[i]);
-        }
-        int val=0;
-        while(val<activeinstances)
-            sem_getvalue(sem_c, &val);
-        for(int i=0;i<activeinstances;++i)
-            sem_post(sem);
-        char* buf[BUFSIZ];
-        sem_close(sem_c);
-        sem_close(sem);
-        sem_unlink("/svkpop3sem_wait");
-        sem_unlink("/svkpop3sem_count");
-
-        fd_set set;
-        struct timeval t;
-        t.tv_sec=10;
-        while(1){
-            FD_ZERO(&set);
-            for(int i=0;i<instances;++i)
-                if(fi[i]!=NULL)
-                    FD_SET(fileno(fi[i]),&set);
-            select(fd+1,&set,NULL,NULL, &t);
-            bool isactive=false;
-            for(int i=0;i<instances;++i){
-                if(fi[i]!=NULL&&FD_ISSET(fileno(fi[i]),&set)){
-                    int len = read(fileno(fi[i]),buf,BUFSIZ);
-                    if(len){
-                        replies[i]+=std::string((char*)buf);
-                        isactive=true;
-                    }
-                    else fi[i]=NULL;
-                }
-            }
-            if(!isactive)
-                break;
-        }// wait for finished
-    }// whole messages
     return 0;
 }
 
 int svkMain::stage_smtp(string configRoot)
 {    
     string source=xmlReadString("@source");
-
+    int instances=xmlReadInt("@instances",1);
+    std::ostringstream oss;
     vector<string> lines;
     if(source.empty())
         return 0;
@@ -241,8 +192,11 @@ int svkMain::stage_smtp(string configRoot)
             continue;
         const auto filenameStr = entry.path().filename().string();
         string filepath=source+filenameStr;
-        lines.push_back(filepath);
+        oss.str("");
+        oss<<BINPATH<<"svksmtp "<<configRoot<<" "<<filenameStr;
+        lines.push_back(oss.str());
     }
+    poolProcessing(lines,"/svksmtpsem_wait","/svksmtpsem_count",instances);
     return 0;
 }
 
