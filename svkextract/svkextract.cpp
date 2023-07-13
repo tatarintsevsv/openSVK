@@ -82,6 +82,9 @@ int svkExtract::run(char* configRoot, char* filename)
     openlog("SVKextract",LOG_CONS|LOG_PID,LOG_MAIL);
     configInit(CONFIG_XML,"SVKextract");
     configSetRoot(configRoot);
+    string facility=xmlReadString("@facility","SVKextract");
+    if(facility.length())
+        openlog(facility.c_str(),LOG_CONS|LOG_PID,LOG_MAIL);
 
     if((fd=open(filename,O_RDONLY))<=0){
         syslog(LOG_ERR,"Ошибка открытия файла %s (%s)",filename,strerror(errno));
@@ -90,8 +93,8 @@ int svkExtract::run(char* configRoot, char* filename)
     //fd=open(filename,O_RDONLY);
     parseHeader(&headers);
     string xp = "rule[contains('"+headers["From"]+"',@from)]/";
-    string extractto = xmlReadString(xp+"@extractto");
-    string out = xmlReadString(xp+"@out");
+    string extractto = xmlReadPath(xp+"@extractto");
+    string out = xmlReadPath(xp+"@out");
 
     // Debug headers output
     syslog(LOG_INFO,"Обработка письма %s",filename);

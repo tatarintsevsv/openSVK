@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 
     user=configReadString("telnet/@username","");
     password = configReadString("telnet/@password","");
-    rules = configReadString("telnet/@rules","");
+    rules = configReadPath("telnet/@rules","");
     timeout = configReadInt("telnet/@timeout",60);
     buf = NULL;
 

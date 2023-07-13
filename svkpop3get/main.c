@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     free(buf);
     user=configReadString("pop3/@username","");
     password = configReadString("pop3/@password","");
-    maildir = configReadString("pop3/@maildir","");
+    maildir = configReadPath("pop3/@maildir","");
     uidl = configReadInt("pop3/@uidl",0)==1;
     keep = configReadInt("pop3/@keep",0)==1;
     buf = NULL;    

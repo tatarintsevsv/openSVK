@@ -194,7 +194,7 @@ int svkMain::stage_execute(string configRoot)
 
 int svkMain::stage_smtp(string configRoot)
 {    
-    string source=xmlReadString("@source");
+    string source=xmlReadPath("@source");
     int instances=xmlReadInt("@instances",1);
     std::ostringstream oss;
     vector<string> lines;
@@ -252,7 +252,7 @@ int svkMain::stage_compose(string configRoot)
 
 int svkMain::stage_extract(string configRoot)
 {
-    string source=xmlReadString("@in");
+    string source=xmlReadPath("@in");
     if(source.empty())
         return -1;
 
@@ -272,7 +272,7 @@ int svkMain::stage_extract(string configRoot)
         if(r!=0)
             ;// TODO analize return code
     }
-    source=xmlReadString("@in");
+    source=xmlReadPath("@in");
     const fs::path dir2{source+"tmp/"};
     for(const auto& entry: fs::directory_iterator(dir2)){
         if (!entry.is_regular_file())

@@ -1,6 +1,7 @@
 #include "config.h"
 #include <assert.h>
 #include <syslog.h>
+#include <wordexp.h>
 #include <libxml2/libxml/tree.h>
 #include <libxml2/libxml/parser.h>
 #include <libxml2/libxml/c14n.h>
@@ -131,6 +132,18 @@ char* configReadString(const char* path,const char* def)
         strcpy(set,def);
     }
     return set;
+}
+
+char* configReadPath(const char* path,const char* def)
+{
+    char* res = configReadString(path,def);
+    wordexp_t exp_result;
+    wordexp(res, &exp_result, 0);
+    free(res);
+    res = (char*)malloc(strlen(exp_result.we_wordv[0]));
+    strcpy(res,exp_result.we_wordv[0]);
+    wordfree(&exp_result);
+    return res;
 }
 
 int configReadInt(const char* path, int def){

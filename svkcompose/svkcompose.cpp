@@ -112,8 +112,8 @@ void svkCompose::prepareFile(string filename){
 void svkCompose::processDir(string node)
 {
     configSetRoot(node.c_str());
-    source=xmlReadString("@in");
-    result=xmlReadString("@out");
+    source=xmlReadPath("@in");
+    result=xmlReadPath("@out");
     from=xmlReadString("@from");
     recipients=xmlReadString("@recipients");
     subject=xmlReadString("@subject");

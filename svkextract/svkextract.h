@@ -32,6 +32,12 @@ private:
     int xmlReadInt(std::string path, int def=0){
          return configReadInt(path.c_str(), def);
     };
+    string xmlReadPath(string path,string def=""){
+        char* r = configReadPath(path.c_str(),def.c_str());
+        string res = string(r);
+        free(r);
+        return res;
+    };
     void parseHeader(dict* headers);
     void readPart(string boundary, mimepart* part);
     dict headers;

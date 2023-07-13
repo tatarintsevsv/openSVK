@@ -94,9 +94,9 @@ int main(int argc, char *argv[])
         closelog();
         openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
     }
-    sent=configReadString("@sent","");
+    sent=configReadPath("@sent","");
     char* filename=malloc(BUFSIZE);    
-    buf = configReadString("@source","./");
+    buf = configReadPath("@source","./");
     sprintf(filename,"%scur/%s",buf,argv[2]);
     free(buf);
     f=open(filename,O_RDONLY);
