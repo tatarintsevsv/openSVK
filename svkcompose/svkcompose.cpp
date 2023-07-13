@@ -162,10 +162,10 @@ svkCompose::svkCompose(string root)
 
 int svkCompose::run()
 {
-    string xpath = "count("+root+"source"+")";
+    string xpath = "count("+root+"compose"+")";
     int count = stoi(configGetNodeSet(xpath.c_str()));
     for(int i=1;i<count+1;i++){
-        processDir(root+"source["+std::to_string(i)+"]/");
+        processDir(root+"compose["+std::to_string(i)+"]/");
     }
     configClose();
     return 0;

@@ -200,7 +200,6 @@ int svkMain::stage_smtp(string configRoot)
     vector<string> lines;
     if(source.empty())
         return 0;
-
     const fs::path dir{source+"cur/"};
     for(const auto& entry: fs::directory_iterator(dir)){
         if (!entry.is_regular_file())
@@ -256,6 +255,7 @@ int svkMain::stage_extract(string configRoot)
     string source=xmlReadString("@in");
     if(source.empty())
         return -1;
+
     source+="tmp/";
     const fs::path dir{source};
     for(const auto& entry: fs::directory_iterator(dir)){
@@ -341,14 +341,14 @@ int svkMain::run()
                 {
                     int mdaCount = 0;
                     try{
-                        mdaCount = stoi(configGetNodeSet(string("count("+path+"source"+")").c_str()));
+                        mdaCount = stoi(configGetNodeSet(string("count("+path+"extract"+")").c_str()));
                     }
                     catch (std::invalid_argument const& ex)
                     {
                         syslog(LOG_ERR,"Не указаны правила обработки писем");
                     }
                     for(int rule=0;rule<mdaCount;rule++){
-                        string xp = path+"source["+to_string(rule+1)+"]/";
+                        string xp = path+"extract["+to_string(rule+1)+"]/";
                         configSetRoot(xp.c_str());
                         res |= stage_extract(xp);
                     }
