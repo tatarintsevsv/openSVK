@@ -36,12 +36,12 @@ dependencies=()
 echo -e $BLUE Определение типа менеджера пакетов $NC
 if [ -n "$(command -v yum)" ]; then
     echo -e Менеджер пакетов $GREEN YUM $NC
-    dependencies=("libxml2" "libxml2-devel" "libcurl" "libcurl-devel" "gcc" "gcc-c++" "cmake" "git")
+    dependencies=("libxml2" "libxml2-devel" "libcurl" "libcurl-devel" "gcc" "gcc-c++" "cmake" "git" "libuuid" "libuuid-devel")
     is_apt=0
 fi 
 if [ -n "$(command -v apt-get)" ]; then
     echo -e Менеджер пакетов $GREEN APT $NC
-    dependencies=("libxml2" "libxml2-dev" "libcurl" "libcurl4-gnutls-dev" "build-essential" "cmake" "git")
+    dependencies=("libxml2" "libxml2-dev" "libcurl" "libcurl4-gnutls-dev" "build-essential" "cmake" "git" "libuuid" "libuuid-dev")
     is_apt=1
 fi
 if [ $is_apt -eq -1 ]; then
