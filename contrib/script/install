@@ -21,8 +21,15 @@ INSTALLFILES=("svkcompose"  "svkmain"  "svkpop3get"  "svkpop3list"  "svksmtp"  "
 if [[ $UID != 0 ]]; then
     echo -e $RED $'\n' Скрипт должен запускаться с правами суперпользователя!  $NC
     echo -e $WHITE sudo $0 $* $NC
+    echo Нажмите любую клавишу. Попробуем перезапустить с запросом пароля суперпользователя
+    read -n 1 k
+    echo -e $'\n\n'
+    sudo $0 $*
     exit 1
 fi
+echo -e $WHITE Добро пожаловать в установщик $GREEN $PROJECT $WHITE $"\n" Сейчас будет произведена проверка системы, скачивание необходимых пакетов и компилирование исполняемых файлов проекта$NC
+echo -e Если вы желаете самостоятельно собрать проект, репозиторий проекта вы можете найти по адресу $"\n" $GITREPO
+echo -e Приступим... $"\n\n"
 
 is_apt=-1
 dependencies=()
@@ -47,11 +54,11 @@ check_yum_pkg(){  echo `yum list installed $1 | wc -l`; }
 check_apt_pkg(){  echo `dpkg -l | grep $1 | wc -l`; }
 install_pkg(){ if [ $is_apt = "1" ]; then install_apt_pkg $1; else install_yum_pkg $1; fi;}
 install_apt_pkg(){
-    sudo apt-get install $1
+    apt-get install $1
     return $?
 }
 install_yum_pkg(){
-    sudo yum install $1
+    yum install $1
     echo $? 
 }
 
@@ -107,22 +114,32 @@ if [ $? -ne 0 ]; then
     echo -e $RED $'\n' При компиляции проекта возникла ошибка. Продолжение невозможно! $NC
     exit 1
 fi
-echo -e $'\n'$BLUE Исполняемые файлы проекта скомпилированы в $WHITE $PWD/bin $BLUE проекта $NC 
+echo -e $'\n'$BLUE Исполняемые файлы проекта скомпилированы в $WHITE $PWD/bin $NC 
 read -p "Произвести установку в /opt? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
-cd bin
 mkdir /opt/$PROJECT
-echo -e $BLUE Копирование файлов $NC
+echo -e $BLUE Копирование исполняемых файлов $NC
 for item in ${INSTALLFILES[*]}
 do
     echo -ne "- $item\t\t\t"
     if [ -d "/opt/$PROJECT/$item" ]; then
         echo -ne $RED "(Перезапись существующего)" $NC
     fi
-    yes | cp $item /opt/$PROJECT
+    yes | cp bin/$item /opt/$PROJECT
     if [ $? -ne 0 ]; then
 	echo -e $RED Ошибка $NC
     else 
 	echo -e $LGREEN Ok $NC
     fi
 done
-echo -e $BLUE Копирование завершено $NC
+echo -e $BLUE Копирование дополнительных файлов $NC
+cp -R contrib /opt/$PROJECT
+echo -e $BLUE Удаление файлов git репозитория $NC
+cd ..
+rm -R ./$PROJECT 
+echo -e $WHITE Примите поздравления! Файлы проекта успешно установлены в /opt/$PROJECT $NC
+echo -e Рекомендуется ознакомиться с каталогом $WHITE /opt/$PROJECT/contrib $NC В нем содержатся примеры конфигурации, документация и полезные скрипты:
+echo -e $WHITE commons $NC - Общие файлы конфигурации
+echo -e $WHITE config $NC - Примеры файлов конфигурации
+echo -e $WHITE doc $NC - Файлы документации
+echo -e $WHITE script $NC - Скрипты установки/конфигурации/управления
+    
