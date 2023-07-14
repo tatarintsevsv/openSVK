@@ -50,17 +50,28 @@ if [ $is_apt -eq -1 ]; then
 fi
 
 check_pkg(){ if [ $is_apt = "1" ]; then check_apt_pkg $1; else check_yum_pkg $1; fi;}
-check_yum_pkg(){  echo `yum list installed $1 | wc -l`; }
+check_yum_pkg(){  echo `yum list installed $1 2>/dev/null| wc -l`; }
 check_apt_pkg(){  echo `dpkg -l | grep $1 | wc -l`; }
 install_pkg(){ if [ $is_apt = "1" ]; then install_apt_pkg $1; else install_yum_pkg $1; fi;}
 install_apt_pkg(){
-    apt-get install $1
+    apt-get -y install $1
     return $?
 }
 install_yum_pkg(){
-    yum install $1
+    yum -y install $1
     echo $? 
 }
+
+item="noname"
+    echo -ne "- $item\t\t\t"
+    if [ "$(check_pkg $item)" = 0 ]; then 
+    echo -e $RED Отсутствует $NC
+    missing_pkgs+=($item)
+    else 
+    echo -e $LGREEN Ok $NC
+    fi
+exit 0 
+
 
 echo -e $'\n'$BLUE Проверка необходимых для компиляции и установки пакетов в системе $NC
 missing_pkgs=()
@@ -68,10 +79,10 @@ for item in ${dependencies[*]}
 do
     echo -ne "- $item\t\t\t"
     if [ "$(check_pkg $item)" = 0 ]; then 
-	echo -e $RED Отсутствует $NC
-	missing_pkgs+=($item)
+    echo -e $RED Отсутствует $NC
+    missing_pkgs+=($item)
     else 
-	echo -e $LGREEN Ok $NC
+    echo -e $LGREEN Ok $NC
     fi
 done
 if [ ${#missing_pkgs[*]} -gt 0 ]; then
@@ -126,9 +137,9 @@ do
     fi
     yes | cp bin/$item /opt/$PROJECT
     if [ $? -ne 0 ]; then
-	echo -e $RED Ошибка $NC
+    echo -e $RED Ошибка $NC
     else 
-	echo -e $LGREEN Ok $NC
+    echo -e $LGREEN Ok $NC
     fi
 done
 echo -e $BLUE Копирование дополнительных файлов $NC
