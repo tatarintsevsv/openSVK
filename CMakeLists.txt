@@ -34,5 +34,3 @@ if(BUILD_svktelnet)
     add_subdirectory(svktelnet)
 endif()
 
-configure_file(contrib/config.xml bin/config.xml COPYONLY)
-configure_file(contrib/telnet_login bin/telnet_login COPYONLY)
