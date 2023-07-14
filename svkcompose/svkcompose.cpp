@@ -15,6 +15,7 @@
 #include <uuid/uuid.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <iomanip>
 
 namespace fs = std::filesystem;
 using namespace std;
