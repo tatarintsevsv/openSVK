@@ -21,6 +21,6 @@ endif()
 
 
 find_library(LIBUUID_LIBRARY NAMES uuid)
-link_libraries(${LIBUUID_LIBRARY})
+link_libraries(${LIBUUID_LIBRARY} stdc++fs)
 
 add_executable(svkcompose main.cpp svkcompose.h svkcompose.cpp base64.cpp base64.h)
