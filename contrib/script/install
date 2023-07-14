@@ -62,16 +62,6 @@ install_yum_pkg(){
     echo $? 
 }
 
-item="noname"
-    echo -ne "- $item\t\t\t"
-    if [ "$(check_pkg $item)" = 0 ]; then 
-    echo -e $RED Отсутствует $NC
-    missing_pkgs+=($item)
-    else 
-    echo -e $LGREEN Ok $NC
-    fi
-exit 0 
-
 
 echo -e $'\n'$BLUE Проверка необходимых для компиляции и установки пакетов в системе $NC
 missing_pkgs=()
@@ -89,9 +79,6 @@ if [ ${#missing_pkgs[*]} -gt 0 ]; then
     echo -ne $'\n' $BLUE В системе отсутствуют необходимые пакеты: $NC
     for item in ${missing_pkgs[*]}; do echo -ne " $item"; done
     echo $'\n'
-    read -p "Установить недостающие пакеты? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
-    echo $'\n' Установка $'\n'    
-    echo -e $
     for item in ${missing_pkgs[*]}
     do
         install_pkg $item
@@ -126,7 +113,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo -e $'\n'$BLUE Исполняемые файлы проекта скомпилированы в $WHITE $PWD/bin $NC 
-read -p "Произвести установку в /opt? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
 mkdir /opt/$PROJECT
 echo -e $BLUE Копирование исполняемых файлов $NC
 for item in ${INSTALLFILES[*]}
