@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+  <xs:element name="config">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="global" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute type="xs:integer" name="pollinterval" use="required"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="stage" minOccurs="1" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="telnet" type="stageTelnet" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="pop3" type="stagePop3" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="smtp" type="stageSmtp" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="execute" type="stageExecute" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="extract" type="stageExtract" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="compose" type="stageCompose" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute type="stageType" name="type" use="required"/>
+            <xs:attribute type="xs:integer" name="enabled" use="optional"/>
+            <xs:attribute type="xs:string" name="facility" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="dirType">
+    <xs:annotation>
+      <xs:documentation>Каталог</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value=".*/"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="stageType">
+    <xs:annotation>
+      <xs:documentation>Тип этапа</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="telnet"/>
+      <xs:enumeration value="pop3"/>
+      <xs:enumeration value="smtp"/>
+      <xs:enumeration value="compose"/>
+      <xs:enumeration value="extract"/>
+      <xs:enumeration value="execute"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="stageTelnet">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="host" use="required"/>
+        <xs:attribute type="xs:string" name="username" use="required"/>
+        <xs:attribute type="xs:string" name="password" use="required"/>
+        <xs:attribute type="xs:integer" name="timeout" use="optional"/>
+        <xs:attribute type="xs:string" name="rules" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="stagePop3">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="host" use="required"/>
+        <xs:attribute type="xs:string" name="username" use="required"/>
+        <xs:attribute type="xs:string" name="password" use="required"/>
+        <xs:attribute type="dirType" name="maildir" use="required"/>
+        <xs:attribute type="xs:integer" name="keep" use="optional"/>
+        <xs:attribute type="xs:integer" name="uidl" use="optional"/>
+        <xs:attribute type="xs:string" name="instances" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="stageSmtp">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="host" use="required"/>
+        <xs:attribute type="xs:string" name="username" use="required"/>
+        <xs:attribute type="xs:string" name="password" use="required"/>
+        <xs:attribute type="dirType" name="source" use="required"/>
+        <xs:attribute type="dirType" name="sent" use="optional"/>
+        <xs:attribute type="xs:string" name="from" use="required"/>
+        <xs:attribute type="xs:string" name="recipients" use="required"/>
+        <xs:attribute type="xs:string" name="instances" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="stageExecute">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="command"/>
+        <xs:attribute type="xs:integer" name="verbose"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="stageExtract">
+    <xs:sequence>
+      <xs:element type="xs:string" name="description" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="rule" type="extractRuleType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="dirType" name="in"/>
+  </xs:complexType>
+  <xs:complexType name="extractSourceType">
+    <xs:sequence>
+      <xs:element name="rule" type="extractRuleType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="dirType" name="in"/>
+  </xs:complexType>
+  <xs:complexType name="extractRuleType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="from" use="required"/>
+        <xs:attribute type="dirType" name="out" use="optional"/>
+        <xs:attribute type="dirType" name="extractto" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="stageCompose">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="dirType" name="in" use="required"/>
+        <xs:attribute type="dirType" name="out" use="optional"/>
+        <xs:attribute type="xs:string" name="subject" use="required"/>
+        <xs:attribute type="xs:string" name="from" use="required"/>
+        <xs:attribute type="xs:string" name="recipients" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+</xs:schema>

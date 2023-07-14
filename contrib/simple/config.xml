@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<global pollinterval="20"/>
+	<stage type="telnet" enabled="0" facility="SVK_TELNET_test">
+		<description>telnet auth</description>
+		<telnet host="192.168.22.68:23" username="admin" password="$$$SVK_TELNET_PASSWORD" timeout="5" rules="./telnet_login"/>
+	</stage>
+	<stage type="pop3" enabled="1" facility="SVK_POP3_test">
+		<description>Получение почты</description>
+		<pop3 host="192.168.22.70:110" username="test" password="$$$SVK_POP3_PASSWORD" maildir="~/Maildir/" keep="1" uidl="1" instances="5"/>
+	</stage>
+	<stage type="extract" enabled="1" facility="SVK_MDA_test">
+		<description>Обработка входящих</description>
+		<extract in="~/Maildir/">
+			<rule from="fns440" out="~Maildir/.INBOX.tsv/" extractto="./attachments/tsv/"/>
+			<rule from="tsv@kraskript.com" out="~/Maildir/.INBOX.tsv/" extractto="./attachments/tsv/"/>
+			<rule from="bank@kraskript.com" out="~/Maildir/.INBOX.bank/" extractto="./attachments/bank/"/>
+		</extract>
+	</stage>
+	<stage type="compose" enabled="1" facility="SVK_COMPOSE_test">
+		<description>Подготовка писем</description>
+		<compose in="./files_to_send/both/" out="~/Maildir/.ReadyToSent.both/" subject="tsv+arise" from="test@kraskript.com" recipients="tsv@kraskript.com,arise@kraskript.com"/>
+		<compose in="./files_to_send/tsv/" out="~/Maildir/.ReadyToSent.tsv/" subject="tsv" from="test@kraskript.com" recipients="tsv@kraskript.com"/>
+	</stage>
+	<stage type="smtp" enabled="1" facility="SVK_SMTP_test">
+		<description>Отправка почты</description>
+		<smtp host="192.168.22.70:25" username="test" password="$$$SVK_POP3_PASSWORD" source="~/Maildir/.ReadyToSent.both/" sent="~/Maildir/.Sent.both/" from="test@kraskript.com" recipients="tsv@kraskript.com,arise@kraskript.com" instances="5"/>
+		<smtp host="192.168.22.70:25" username="test" password="$$$SVK_POP3_PASSWORD" source="~/Maildir/.ReadyToSent.tsv/" sent="~/Maildir/.Sent.tsv/" from="test@kraskript.com" recipients="tsv@kraskript.com" instances="5"/>
+	</stage>
+	<stage type="execute" enabled="1">
+		<description>Вызов внешней программы</description>
+		<execute command="ping -c 2 192.168.22.70" verbose="1"/>
+	</stage>
+</config>

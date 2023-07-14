@@ -1,0 +1,11 @@
+LOGIN
+>ECHO Запрос входа
+Authentication Successful
+>QUIT_OK Успешно вошли
+Login failed, incorrect username or password
+>QUIT_FAIL Ошибка входа
+Login:
+>USERNAME
+Password:
+>PASSWORD
+
