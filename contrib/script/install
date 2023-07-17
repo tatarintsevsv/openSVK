@@ -36,12 +36,20 @@ dependencies=()
 echo -e $BLUE Определение типа менеджера пакетов $NC
 if [ -n "$(command -v yum)" ]; then
     echo -e Менеджер пакетов $GREEN YUM $NC
+<<<<<<< HEAD
     dependencies=("libxml2" "libxml2-devel" "libcurl" "libcurl-devel" "gcc" "gcc-c++" "cmake" "git" "dovecot")
+=======
+    dependencies=("libxml2" "libxml2-devel" "libcurl" "libcurl-devel" "gcc" "gcc-c++" "cmake" "git" "libuuid" "libuuid-devel")
+>>>>>>> c9794732675ba61f7734f089abd92a3cdbe0b318
     is_apt=0
 fi 
 if [ -n "$(command -v apt-get)" ]; then
     echo -e Менеджер пакетов $GREEN APT $NC
+<<<<<<< HEAD
     dependencies=("libxml2" "libxml2-dev" "libcurl" "libcurl4-gnutls-dev" "build-essential" "cmake" "git" "dovecot")
+=======
+    dependencies=("libxml2" "libxml2-dev" "libcurl" "libcurl4-gnutls-dev" "build-essential" "cmake" "git" "libuuid" "libuuid-dev")
+>>>>>>> c9794732675ba61f7734f089abd92a3cdbe0b318
     is_apt=1
 fi
 if [ $is_apt -eq -1 ]; then
@@ -50,17 +58,18 @@ if [ $is_apt -eq -1 ]; then
 fi
 
 check_pkg(){ if [ $is_apt = "1" ]; then check_apt_pkg $1; else check_yum_pkg $1; fi;}
-check_yum_pkg(){  echo `yum list installed $1 | wc -l`; }
+check_yum_pkg(){  echo `yum list installed $1 2>/dev/null| wc -l`; }
 check_apt_pkg(){  echo `dpkg -l | grep $1 | wc -l`; }
 install_pkg(){ if [ $is_apt = "1" ]; then install_apt_pkg $1; else install_yum_pkg $1; fi;}
 install_apt_pkg(){
-    apt-get install $1
+    apt-get -y install $1
     return $?
 }
 install_yum_pkg(){
-    yum install $1
+    yum -y install $1
     echo $? 
 }
+
 
 echo -e $'\n'$BLUE Проверка необходимых для компиляции и установки пакетов в системе $NC
 missing_pkgs=()
@@ -68,19 +77,16 @@ for item in ${dependencies[*]}
 do
     echo -ne "- $item\t\t\t"
     if [ "$(check_pkg $item)" = 0 ]; then 
-	echo -e $RED Отсутствует $NC
-	missing_pkgs+=($item)
+    echo -e $RED Отсутствует $NC
+    missing_pkgs+=($item)
     else 
-	echo -e $LGREEN Ok $NC
+    echo -e $LGREEN Ok $NC
     fi
 done
 if [ ${#missing_pkgs[*]} -gt 0 ]; then
     echo -ne $'\n' $BLUE В системе отсутствуют необходимые пакеты: $NC
     for item in ${missing_pkgs[*]}; do echo -ne " $item"; done
     echo $'\n'
-    read -p "Установить недостающие пакеты? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
-    echo $'\n' Установка $'\n'    
-    echo -e $
     for item in ${missing_pkgs[*]}
     do
         install_pkg $item
@@ -115,7 +121,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo -e $'\n'$BLUE Исполняемые файлы проекта скомпилированы в $WHITE $PWD/bin $NC 
-read -p "Произвести установку в /opt? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
 mkdir /opt/$PROJECT
 echo -e $BLUE Копирование исполняемых файлов $NC
 for item in ${INSTALLFILES[*]}
@@ -126,9 +131,9 @@ do
     fi
     yes | cp bin/$item /opt/$PROJECT
     if [ $? -ne 0 ]; then
-	echo -e $RED Ошибка $NC
+    echo -e $RED Ошибка $NC
     else 
-	echo -e $LGREEN Ok $NC
+    echo -e $LGREEN Ok $NC
     fi
 done
 echo -e $BLUE Копирование дополнительных файлов $NC

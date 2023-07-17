@@ -19,6 +19,7 @@ else()
 endif()
 
 add_executable(svkmain main.cpp svkmain.h svkmain.cpp)
+target_link_libraries(svkmain stdc++fs)
 
 find_package(Threads REQUIRED)
 if(THREADS_HAVE_PTHREAD_ARG)
