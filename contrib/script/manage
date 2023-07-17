@@ -1,0 +1,6 @@
+#!/bin/bash
+validate(){
+
+}
+
+stages = xmllint --xpath 'count(//config/stage)' config.xml

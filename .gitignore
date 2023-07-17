@@ -20,6 +20,7 @@
 *.qm
 .#*
 *.*#
+.idea
 core
 !core/
 tags
