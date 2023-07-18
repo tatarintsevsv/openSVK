@@ -2,12 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(svkmain LANGUAGES CXX)
 
-SET(GCC_MY_FLAGS "-Wl,-rpath,.")
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_MY_FLAGS}")
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(GCC_MY_FLAGS "-Wl,-rpath,.")
+SET(GCC_MY_FLAGS "-Wl,--disable-new-dtags,-rpath,'$ORIGIN'")
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_MY_FLAGS}")
 
 if(NOT DEFINED WHOLE_PROJECT)

@@ -8,7 +8,7 @@ INSTALLFILES=("svkcompose"  "svkmain"  "svkpop3get"  "svkpop3list"  "svksmtp"  "
 if [[ $UID != 0 ]]; then
     echo -e $RED $'\n' Скрипт должен запускаться с правами суперпользователя!  $NC
     echo -e $WHITE sudo $0 $* $NC
-    read -n 1 k
+    read -n 1 -s
     echo -e $'\n\n'
     exit 1
 fi
@@ -21,7 +21,7 @@ osrelease=$(cat /etc/os-release)
 echo -e Дистрибутив$LGREEN $(echo "$osrelease"|grep -E "^PRETTY_NAME="|cut -d= -f2)$NC
 osid=$(echo "$osrelease"|grep -E "^ID="|cut -d= -f2)
 
-dependencies=("libxml2" "libuuid1" "cmake" "git" "dovecot-core" "dovecot-imapd")
+dependencies=("libxml2" "libuuid" "cmake" "git")
 deposbased=()
 install_pkg=""
 checkpkg=""
@@ -42,8 +42,6 @@ case "${osid//\"}" in
  deposbased=("libcurl" "libxml2-devel" "libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-devel-static")
  install_pkg="install_aptget"
  ;;
- 
- 
 esac
 if [[ -z $install_pkg ]]; then
     echo -e $RED Данный дистрибутив не поддерживается. Компиляция и установка должны производиться вручную  $NC

@@ -7,7 +7,7 @@
   </stage>
   <stage type="pop3" enabled="1" facility="SVK_POP3">
     <description>Получение почты</description>
-    <pop3 host="$$$SVK_POP3_HOST" username="$$$SVK_POP3_USERNAME" maildir="~/Maildir/" keep="1" uidl="1" instances="$$$SVK_POP3_INSTANCES"/>
+    <pop3 host="$$$SVK_POP3_HOST" username="$$$SVK_POP3_USERNAME" password="$$$SVK_POP3_PASSWORD" maildir="~/Maildir/" keep="1" uidl="1" instances="$$$SVK_POP3_INSTANCES"/>
   </stage>
   <stage type="extract" enabled="1" facility="SVK_MDA">
     <description>Обработка входящих</description>

@@ -1,6 +1,264 @@
 #!/bin/bash
-validate(){
+RED='\033[1;31m';GREEN='\033[0;32m';BLUE='\033[1;34m';LGREEN='\033[1;32m';WHITE='\033[1;37m';GRAY='\033[1;30m';NC='\033[0m';YELLOW='\033[1;33m'
+daemon_name="cbr-svk"
+if [[ $UID != 0 ]]; then
+    sudo $0 $*
+    exit 1
+fi
 
+
+validate(){    
+    echo -e "$GREEN***** Валидация конфигурации по схеме *****$NC"
+    xmllint --noout --schema ./config.xsd config.xml
+    if [ $? -eq 0 ]; then
+        echo -e $LGREENКонфигурация соответствует схеме$NC
+        return 0
+    else
+        echo -e $REDВ конфигурации имеются ошибки$NC
+        return 1
+    fi
+}
+check_file(){
+    echo -ne "$BLUE   $2 $NC"
+    eval tmp=$1
+    if test -f "$tmp"; then
+        echo -e "$GREEN Ok $NC"
+        return 0
+    else
+        echo -e "$RED'$1' Не существует!$NC"
+        return 1        
+    fi
 }
 
-stages = xmllint --xpath 'count(//config/stage)' config.xml
+check_dir(){
+    eval tmp=$1
+    echo -ne "    $2 $NC"
+    if [ -d "$tmp" ]; then
+        echo -e "$GREEN Ok $NC"
+        return 0
+    else
+        echo -e "$RED'$1' Не существует!$NC"
+        return 1        
+    fi
+}
+check_maildir(){
+    res=0
+    check_dir $1 " $2"
+    res=$[ $res + $? ]    
+    check_dir "$1""cur" "    /cur"
+    res=$[ $res + $? ]
+    check_dir "$1""tmp" "    /tmp"
+    res=$[ $res + $? ]
+    return $res
+}
+check_telnet(){    
+    rules=$(eval "xmllint --xpath 'string($xp/telnet/@rules)' config.xml")
+    check_file $rules " Проверка файла правил аутентификации"
+    #if [ $? -eq 1 ]; then read -n 1 -s -r -p "Нажмите любую клавиишу для продолжения"; fi
+}
+check_pop3(){
+    echo -e "$BLUE    Проверка параметров получения почты$NC"
+    maildir=$(eval "xmllint --xpath 'string($xp/pop3/@maildir)' config.xml")
+    check_dir $maildir "Общий каталог получения почты"
+    #if [ req -ne 0 ]; then read -n 1 -s -r -p "Нажмите любую клавиишу для продолжения"; fi 
+}
+check_extract(){
+    echo -e "$BLUE    Проверка правил извлечения вложений$NC"
+    extracts=$(eval "xmllint --xpath 'count($xp/extract)' config.xml")
+    ex=1
+    while [ $ex -le $extracts ]
+    do
+        exxp="$xp/extract[$ex]"        
+        dir=$(eval "xmllint --xpath 'string($exxp/@in)' config.xml")
+        check_maildir $maildir "   Каталог исходных писем $WHITE$dir$NC"
+        rules=$(eval "xmllint --xpath 'count($exxp/rule)' config.xml")
+        r=1
+        while [ $r -le $rules ]
+        do
+            rule="$exxp/rule[$r]"
+            rule_from=$(eval "xmllint --xpath 'string($rule/@from)' config.xml")
+            rule_out=$(eval "xmllint --xpath 'string($rule/@out)' config.xml")
+            rule_extractto=$(eval "xmllint --xpath 'string($rule/@extractto)' config.xml")           
+            echo -e "$BLUE       Правило для $WHITE$rule_from$NC"
+            check_maildir $rule_out "   Каталог назначения для писем $WHITE$rule_out$NC"
+            res_out=$?
+            check_dir $rule_extractto "   Каталог выгрузки вложений $WHITE$rule_extractto$NC"
+            res_extr=$?
+            if [ $res_out -gt 0 ] || [ $res_extr -gt 0 ]; then                                
+                read -s -N 1 -p "       Создать каталоги? (Y/n): " confirm                                
+                if [[ $confirm == "y" || $confirm == "Y" || $confirm == $'\x0a' ]]; then
+                    eval "mkdir -p $rule_out/cur"
+                    eval "mkdir -p $rule_out/tmp"
+                    eval "mkdir -p $rule_extractto"
+                fi
+            fi            
+            r=$[ $r + 1 ]
+        done
+        ex=$[ $ex + 1 ]
+    done    
+    return 0
+}
+
+check_smtp(){
+    echo -e "$BLUE    Проверка параметров отправки почты$NC"
+    smtps=$(eval "xmllint --xpath 'count($xp/smtp)' config.xml")
+    ex=1
+    while [ $ex -le $smtps ]
+    do
+        exxp="$xp/smtp[$ex]"        
+        source=$(eval "xmllint --xpath 'string($exxp/@source)' config.xml")
+        sent=$(eval "xmllint --xpath 'string($exxp/@sent)' config.xml")
+        recipients=$(eval "xmllint --xpath 'string($exxp/@recipients)' config.xml")
+        echo -e "      $WHITEОтправка в адрес$BLUE $recipients$NC"
+        check_maildir $source "   Каталог писем на отправку $WHITE$source$NC"
+        res_source=$?
+        check_maildir $sent "   Каталог отправленных писем $WHITE$sent$NC"
+        res_sent=$?
+        if [ $res_out -gt 0 ] || [ $res_extr -gt 0 ]; then
+            read -s -N 1 -p "       Создать каталоги? (Y/n): " confirm
+            if [[ $confirm == "y" || $confirm == "Y" || $confirm == $'\x0a' ]]; then                    
+                    eval "mkdir -p $source/cur"
+                    eval "mkdir -p $source/tmp"
+                    eval "mkdir -p $sent/cur"
+                    eval "mkdir -p $sent/tmp"
+                    
+            fi
+        fi        
+        ex=$[ $ex + 1 ]
+    done    
+    return 0
+}
+check_compose(){
+    echo -e "$BLUE    Проверка параметров подготовки писем$NC"
+    composes=$(eval "xmllint --xpath 'count($xp/compose)' config.xml")
+    ex=1
+    while [ $ex -le $composes ]
+    do
+        exxp="$xp/compose[$ex]"        
+        indir=$(eval "xmllint --xpath 'string($exxp/@in)' config.xml")
+        outdir=$(eval "xmllint --xpath 'string($exxp/@out)' config.xml")
+        recipients=$(eval "xmllint --xpath 'string($exxp/@recipients)' config.xml")
+        echo -e "      $WHITEПодготовка писем в адрес в адрес$BLUE $recipients$NC"
+        check_dir $indir "$NC   Каталог файлов для отправки $WHITE$indir$NC"
+        res_indir=$?
+        check_maildir $outdir "$NC   Каталог отправленных писем $WHITE$outdir$NC"
+        res_outdir=$?
+        if [ $res_outdir -gt 0 ] || [ $res_indir -gt 0 ]; then
+            read -s -N 1 -p "       Создать каталоги? (Y/n): " confirm
+            if [[ $confirm == "y" || $confirm == "Y" || $confirm == $'\x0a' ]]; then                    
+                    eval "mkdir -p $indir"
+                    eval "mkdir -p $outdir/cur"
+                    eval "mkdir -p $outdir/tmp"
+                    
+            fi
+        fi        
+        ex=$[ $ex + 1 ]
+    done    
+    return 0
+}
+check_execute(){
+    return 0
+}
+
+parse_stages(){
+    stages=$(xmllint --xpath 'count(//config/stage)' config.xml)
+    stage=1
+    echo -e "$GREEN***** Проверка параметров конфигурации *****$NC"
+    while [ $stage -le $stages ]
+    do
+        xp="//config/stage[$stage]"
+        stage_type=$(eval "xmllint --xpath 'string($xp/@type)' config.xml")
+        stage_desc=$(eval "xmllint --xpath '$xp/description/text()' config.xml")
+        echo -e "$LGREEN Шаг $stage - $stage_desc $GRAY($stage_type)$NC"
+        eval "check_$stage_type"
+        
+        stage=$[ $stage + 1 ]
+    done
+}
+check_config(){
+    validate
+    if [ $? -ne 0 ]; then
+        echo -e "$RED Разберитесь с ошибками. Дальнейшая проверка не имеет смысла"
+    fi
+    parse_stages
+}
+check_daemon(){
+#systemctl daemon-reload
+    service $daemon_name status > /dev/null 2>&1
+    ret=$?
+    case "$ret" in
+        0 )
+            echo -e "$LGREENЗапущен    $NC"
+        ;; 
+        3 )
+            echo -e "$YELLOWОстановлен $NC"
+        ;;
+        4 )
+            echo -e "$REDНе установлен$NC"
+        ;;
+        
+    esac
+    return $ret
+}
+#check_daemon
+
+#check_config
+anykey(){
+    read -s -N 1 -p "Нажмите любую клавишу" choose
+}
+menu(){
+read -r -d '' MENU << EOM
+
+\n┌──[$GREEN Конфигурация $NC]─────────────────────────────┐
+│ 1. Проверить конфигурацию                     │
+│                                               │
+├──[$GREEN Демон $NC]────────────────────────────────────┤
+│$WHITE Статус$NC `check_daemon`                            │
+│                                               │
+│ 2. Установить/удалить из systemd              │
+│ 3. Запуск/Останов демона                      │
+│ 4. Настройка параметров                       │
+│ 5. Состояние демона                           │
+│ 6. Настройка окружения                        │
+│                                               │
+├───────────────────────────────────────────────┤
+│ 0. Выход                                      │
+└───────────────────────────────────────────────┘
+EOM
+clear
+if [ $# -eq 0 ]; then
+    echo -e "$MENU"
+    read -s -N 1 -p "Ваш выбор: " choose
+    echo -e "\n"
+    clear
+else
+    choose=$1
+fi
+case "$choose" in
+        0 )
+            exit 0
+        ;; 
+        1 )
+            check_config
+            anykey
+        ;; 
+        2 )            
+            anykey
+        ;; 
+        
+        3 )
+            check_daemon > /dev/null 2>&1
+            if [ $? -eq 0 ]; then service $daemon_name stop; else service $daemon_name restart;fi
+        ;;
+        5 )
+            service $daemon_name status
+            anykey
+        ;; 
+        
+esac            
+if [ $# -eq 0 ]; then    
+    $0
+fi
+}
+
+menu
