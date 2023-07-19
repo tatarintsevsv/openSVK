@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(svkpop3get LANGUAGES C)
-SET(GCC_MY_FLAGS "-Wl,--disable-new-dtags,-rpath,'$ORIGIN'")
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_MY_FLAGS}")
+SET(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 find_library(CURL_LIB curl)
 link_libraries(curl)
