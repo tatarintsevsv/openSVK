@@ -21,7 +21,7 @@ osrelease=$(cat /etc/os-release)
 echo -e Дистрибутив$LGREEN $(echo "$osrelease"|grep -E "^PRETTY_NAME="|cut -d= -f2)$NC
 osid=$(echo "$osrelease"|grep -E "^ID="|cut -d= -f2)
 
-dependencies=("libxml2" "libuuid" "cmake" "git")
+dependencies=("libxml2" "cmake" "git")
 deposbased=()
 install_pkg=""
 checkpkg=""
@@ -29,19 +29,25 @@ checkpkg=""
 case "${osid//\"}" in
  "ubuntu" )
  echo Cемейство Ubuntu
- deposbased=("libcurl4" "libxml2-dev" "libcurl4-gnutls-dev" "build-essential")
+ deposbased=("libcurl4" "libxml2-dev" "libcurl4-gnutls-dev" "build-essential" "libuuid1")
+ install_pkg="install_aptget" 
+ pkgs_update='apt-get update'
+ ;;
+ "astra" )
+ echo Cемейство Astra
+ deposbased=("libcurl3" "libxml2-dev" "libcurl4-gnutls-dev" "build-essential" "libuuid1" "uuid-dev")
  install_pkg="install_aptget" 
  pkgs_update='apt-get update'
  ;;
  "altlinux" )
  echo Семейство Alt Linux
- deposbased=("libcurl" "i586-libxml2-devel" "i586-libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-devel-static")
+ deposbased=("libcurl" "i586-libxml2-devel" "i586-libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-devel-static" "libuuid")
  install_pkg="install_aptget"
  pkgs_update='apt-get update'
  ;;
  "redos" )
  echo Семейство RedOS
- deposbased=("libcurl" "libxml2-devel" "libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-static" "libstdc++")
+ deposbased=("libcurl" "libxml2-devel" "libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-static" "libstdc++" "libuuid")
  install_pkg="install_yum"
  pkgs_update='yum -y makecache'
  ;;
@@ -66,7 +72,7 @@ else
 fi
 }
 install_yum(){
-if yum list --installed | grep -x $1 > /dev/null 2>&1; then echo -e $LGREEN Ok $NC;return 0;fi
+if yum list --installed | grep $1 > /dev/null 2>&1; then echo -e $LGREEN Ok $NC;return 0;fi
 echo -ne $GRAY
 if yum install -y $1; then
     echo -e $LGREEN Ok $NC
