@@ -1,99 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-  <global pollinterval="20"/>
-  <stage type="telnet" enabled="1" facility="SVK_TELNET">
-    <description>Аутентификация на TELNET</description>
-    <telnet host="$$$SVK_TELNET_HOST" username="$$$SVK_TELNET_USERNAME" password="$$$SVK_TELNET_PASSWORD" timeout="5" rules="./telnet_login"/>
-  </stage>
-  <stage type="pop3" enabled="1" facility="SVK_POP3">
-    <description>Получение почты</description>
-    <pop3 host="$$$SVK_POP3_HOST" username="$$$SVK_POP3_USERNAME" maildir="~/Maildir/" keep="1" uidl="1" instances="$$$SVK_POP3_INSTANCES"/>
-  </stage>
-  <stage type="extract" enabled="1" facility="SVK_MDA">
-    <description>Обработка входящих</description>
-    <extract in="~/Maildir/">
-      <rule from="crypt@ext-gate.svk.mskgtu.cbr.ru"     out="~/MailDir/.INBOX.crypt/"     extractto="~/Inbound/crypt/"/>
-      <rule from="fns211@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.fns211/"    extractto="~/Inbound/fns211/"/>
-      <rule from="fns402@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.fns402/"    extractto="~/Inbound/fns402/"/>
-      <rule from="fsfm407p@ext-gate.svk.mskgtu.cbr.ru"  out="~/MailDir/.INBOX.fsfm407p/"  extractto="~/Inbound/fsfm407p/"/>
-      <rule from="fts@ext-gate.svk.mskgtu.cbr.ru"       out="~/MailDir/.INBOX.fts/"       extractto="~/Inbound/fts/"/>
-      <rule from="fz115@ext-gate.svk.mskgtu.cbr.ru"     out="~/MailDir/.INBOX.fz115/"     extractto="~/Inbound/fz115/"/>
-      <rule from="mifns2@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.mifns2/"    extractto="~/Inbound/mifns2/"/>
-      <rule from="rosfinad@ext-gate.svk.mskgtu.cbr.ru"  out="~/MailDir/.INBOX.rosfinad/"  extractto="~/Inbound/rosfinad/"/>
-      <rule from="transfer@ext-gate.svk.mskgtu.cbr.ru"  out="~/MailDir/.INBOX.transfer/"  extractto="~/Inbound/transfer/"/>
-      <rule from="vbk138@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.vbk138/"    extractto="~/Inbound/vbk138/"/>
-      <rule from="tpsod_zoe@ext-gate.svk.mskgtu.cbr.ru" out="~/MailDir/.INBOX.tpsod_zoe/" extractto="~/Inbound/tpsod_zoe/"/>
-      <rule from="tpsod@ext-gate.svk.mskgtu.cbr.ru"     out="~/MailDir/.INBOX.tpsod/"     extractto="~/Inbound/tpsod/"/>
-      <rule from="ckki@ext-gate.svk.mskgtu.cbr.ru"      out="~/MailDir/.INBOX.ckki/"      extractto="~/Inbound/ckki/"/>
-      <rule from="fts390@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.fts390/"    extractto="~/Inbound/fts390/"/>
-      <rule from="fsfm349@ext-gate.svk.mskgtu.cbr.ru"   out="~/MailDir/.INBOX.fsfm349/"   extractto="~/Inbound/fsfm349/"/>
-      <rule from="fts545@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.fts545/"    extractto="~/Inbound/fts545/"/>
-      <rule from="fsfm4077@ext-gate.svk.mskgtu.cbr.ru"  out="~/MailDir/.INBOX.fsfm4077/"  extractto="~/Inbound/fsfm4077/"/>
-      <rule from="status@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.status/"    extractto="~/Inbound/status/"/>
-      <rule from="fsfm550@ext-gate.svk.mskgtu.cbr.ru"   out="~/MailDir/.INBOX.fsfm550/"   extractto="~/Inbound/fsfm550/"/>
-      <rule from="fns440@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.fns440/"    extractto="~/Inbound/fns440/"/>
-      <rule from="fts741@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.fts741/"    extractto="~/Inbound/fts741/"/>
-      <rule from="4512u@ext-gate.svk.mskgtu.cbr.ru"     out="~/MailDir/.INBOX.4512u/"     extractto="~/Inbound/4512u/"/>
-      <rule from="788p@ext-gate.svk.mskgtu.cbr.ru"      out="~/MailDir/.INBOX.788p/"      extractto="~/Inbound/788p/"/>
-      <rule from="vbk181@ext-gate.svk.mskgtu.cbr.ru"    out="~/MailDir/.INBOX.vbk181/"    extractto="~/Inbound/vbk181/"/>
-    </extract>
-  </stage>
-  <stage type="compose" enabled="1" facility="SVK_COMPOSE">
-    <description>Подготовка писем</description>
-    <compose in="~/Outbound/crypt/"     out="~/MailDir/.ReadyToSent.crypt/"     recipients="crypt@ext-gate.svk.mskgtu.cbr.ru"     subject="crypt"     from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fns211/"    out="~/MailDir/.ReadyToSent.fns211/"    recipients="fns211@ext-gate.svk.mskgtu.cbr.ru"    subject="fns211"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fns402/"    out="~/MailDir/.ReadyToSent.fns402/"    recipients="fns402@ext-gate.svk.mskgtu.cbr.ru"    subject="fns402"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fsfm407p/"  out="~/MailDir/.ReadyToSent.fsfm407p/"  recipients="fsfm407p@ext-gate.svk.mskgtu.cbr.ru"  subject="fsfm407p"  from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fts/"       out="~/MailDir/.ReadyToSent.fts/"       recipients="fts@ext-gate.svk.mskgtu.cbr.ru"       subject="fts"       from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fz115/"     out="~/MailDir/.ReadyToSent.fz115/"     recipients="fz115@ext-gate.svk.mskgtu.cbr.ru"     subject="fz115"     from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/mifns2/"    out="~/MailDir/.ReadyToSent.mifns2/"    recipients="mifns2@ext-gate.svk.mskgtu.cbr.ru"    subject="mifns2"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/rosfinad/"  out="~/MailDir/.ReadyToSent.rosfinad/"  recipients="rosfinad@ext-gate.svk.mskgtu.cbr.ru"  subject="rosfinad"  from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/transfer/"  out="~/MailDir/.ReadyToSent.transfer/"  recipients="transfer@ext-gate.svk.mskgtu.cbr.ru"  subject="transfer"  from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/vbk138/"    out="~/MailDir/.ReadyToSent.vbk138/"    recipients="vbk138@ext-gate.svk.mskgtu.cbr.ru"    subject="vbk138"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/tpsod_zoe/" out="~/MailDir/.ReadyToSent.tpsod_zoe/" recipients="tpsod_zoe@ext-gate.svk.mskgtu.cbr.ru" subject="tpsod_zoe" from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/tpsod/"     out="~/MailDir/.ReadyToSent.tpsod/"     recipients="tpsod@ext-gate.svk.mskgtu.cbr.ru"     subject="tpsod"     from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/ckki/"      out="~/MailDir/.ReadyToSent.ckki/"      recipients="ckki@ext-gate.svk.mskgtu.cbr.ru"      subject="ckki"      from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fts390/"    out="~/MailDir/.ReadyToSent.fts390/"    recipients="fts390@ext-gate.svk.mskgtu.cbr.ru"    subject="fts390"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fsfm349/"   out="~/MailDir/.ReadyToSent.fsfm349/"   recipients="fsfm349@ext-gate.svk.mskgtu.cbr.ru"   subject="fsfm349"   from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fts545/"    out="~/MailDir/.ReadyToSent.fts545/"    recipients="fts545@ext-gate.svk.mskgtu.cbr.ru"    subject="fts545"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fsfm4077/"  out="~/MailDir/.ReadyToSent.fsfm4077/"  recipients="fsfm4077@ext-gate.svk.mskgtu.cbr.ru"  subject="fsfm4077"  from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/status/"    out="~/MailDir/.ReadyToSent.status/"    recipients="status@ext-gate.svk.mskgtu.cbr.ru"    subject="status"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fsfm550/"   out="~/MailDir/.ReadyToSent.fsfm550/"   recipients="fsfm550@ext-gate.svk.mskgtu.cbr.ru"   subject="fsfm550"   from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fns440/"    out="~/MailDir/.ReadyToSent.fns440/"    recipients="fns440@ext-gate.svk.mskgtu.cbr.ru"    subject="fns440"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/fts741/"    out="~/MailDir/.ReadyToSent.fts741/"    recipients="fts741@ext-gate.svk.mskgtu.cbr.ru"    subject="fts741"    from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/4512u/"     out="~/MailDir/.ReadyToSent.4512u/"     recipients="4512u@ext-gate.svk.mskgtu.cbr.ru"     subject="4512u"     from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/788p/"      out="~/MailDir/.ReadyToSent.788p/"      recipients="788p@ext-gate.svk.mskgtu.cbr.ru"      subject="788p"      from="$$$SVK_MAIL_FROM"/>
-    <compose in="~/Outbound/vbk181/"    out="~/MailDir/.ReadyToSent.vbk181/"    recipients="vbk181@ext-gate.svk.mskgtu.cbr.ru"    subject="vbk181"    from="$$$SVK_MAIL_FROM"/>
-  </stage>
-  <stage type="smtp" enabled="1" facility="SVK_SMTP">
-    <description>Отправка почты</description>
-    <smtp source="~/MailDir/.ReadyToSent.crypt/"     recipients="crypt@ext-gate.svk.mskgtu.cbr.ru"     sent="~/MailDir/.Sent.crypt/"     from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fns211/"    recipients="fns211@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.fns211/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fns402/"    recipients="fns402@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.fns402/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fsfm407p/"  recipients="fsfm407p@ext-gate.svk.mskgtu.cbr.ru"  sent="~/MailDir/.Sent.fsfm407p/"  from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fts/"       recipients="fts@ext-gate.svk.mskgtu.cbr.ru"       sent="~/MailDir/.Sent.fts/"       from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fz115/"     recipients="fz115@ext-gate.svk.mskgtu.cbr.ru"     sent="~/MailDir/.Sent.fz115/"     from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.mifns2/"    recipients="mifns2@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.mifns2/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.rosfinad/"  recipients="rosfinad@ext-gate.svk.mskgtu.cbr.ru"  sent="~/MailDir/.Sent.rosfinad/"  from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.transfer/"  recipients="transfer@ext-gate.svk.mskgtu.cbr.ru"  sent="~/MailDir/.Sent.transfer/"  from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.vbk138/"    recipients="vbk138@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.vbk138/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.tpsod_zoe/" recipients="tpsod_zoe@ext-gate.svk.mskgtu.cbr.ru" sent="~/MailDir/.Sent.tpsod_zoe/" from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.tpsod/"     recipients="tpsod@ext-gate.svk.mskgtu.cbr.ru"     sent="~/MailDir/.Sent.tpsod/"     from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.ckki/"      recipients="ckki@ext-gate.svk.mskgtu.cbr.ru"      sent="~/MailDir/.Sent.ckki/"      from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fts390/"    recipients="fts390@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.fts390/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fsfm349/"   recipients="fsfm349@ext-gate.svk.mskgtu.cbr.ru"   sent="~/MailDir/.Sent.fsfm349/"   from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fts545/"    recipients="fts545@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.fts545/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fsfm4077/"  recipients="fsfm4077@ext-gate.svk.mskgtu.cbr.ru"  sent="~/MailDir/.Sent.fsfm4077/"  from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.status/"    recipients="status@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.status/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fsfm550/"   recipients="fsfm550@ext-gate.svk.mskgtu.cbr.ru"   sent="~/MailDir/.Sent.fsfm550/"   from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fns440/"    recipients="fns440@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.fns440/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.fts741/"    recipients="fts741@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.fts741/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.4512u/"     recipients="4512u@ext-gate.svk.mskgtu.cbr.ru"     sent="~/MailDir/.Sent.4512u/"     from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.788p/"      recipients="788p@ext-gate.svk.mskgtu.cbr.ru"      sent="~/MailDir/.Sent.788p/"      from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-    <smtp source="~/MailDir/.ReadyToSent.vbk181/"    recipients="vbk181@ext-gate.svk.mskgtu.cbr.ru"    sent="~/MailDir/.Sent.vbk181/"    from="$$$SVK_MAIL_FROM" host="$$$SVK_SMTP_HOST" username="$$$SVK_SMTP_USERNAME" password="$$$SVK_SMTP_PASSWORD" instances="$$$SVK_SMTP_INSTANCES"/>
-  </stage>
-  <stage type="execute" enabled="1">
-    <description>Вызов внешней программы</description>
-    <execute command="ping -c 2 localhost" verbose="1"/>
-  </stage>
+	<global pollinterval="20"/>
+	<stage type="telnet" enabled="0" facility="SVK_TELNET_test">
+		<description>telnet auth</description>
+		<telnet host="192.168.22.68:23" username="admin" password="$$$SVK_TELNET_PASSWORD" timeout="5" rules="./telnet_login"/>
+	</stage>
+	<stage type="pop3" enabled="1" facility="SVK_POP3_test">
+		<description>Получение почты</description>
+		<pop3 host="192.168.22.70:110" username="test" password="$$$SVK_POP3_PASSWORD" maildir="~/Maildir/" keep="1" uidl="1" instances="5"/>
+	</stage>
+	<stage type="extract" enabled="1" facility="SVK_MDA_test">
+		<description>Обработка входящих</description>
+		<extract in="~/Maildir/">
+			<rule from="fns440" out="~/Maildir/.INBOX.tsv/" extractto="./attachments/tsv/"/>
+			<rule from="tsv@kraskript.com" out="~/Maildir/.INBOX.tsv/" extractto="./attachments/tsv/"/>
+			<rule from="bank@kraskript.com" out="~/Maildir/.INBOX.bank/" extractto="./attachments/bank/"/>
+		</extract>
+	</stage>
+	<stage type="compose" enabled="1" facility="SVK_COMPOSE_test">
+		<description>Подготовка писем</description>
+		<compose in="./files_to_send/both/" out="~/Maildir/.ReadyToSent.both/" subject="tsv+arise" from="test@kraskript.com" recipients="tsv@kraskript.com,arise@kraskript.com"/>
+		<compose in="./files_to_send/tsv/" out="~/Maildir/.ReadyToSent.tsv/" subject="tsv" from="test@kraskript.com" recipients="tsv@kraskript.com"/>
+	</stage>
+	<stage type="smtp" enabled="1" facility="SVK_SMTP_test">
+		<description>Отправка почты</description>
+		<smtp host="192.168.22.70:25" username="test" password="$$$SVK_POP3_PASSWORD" source="~/Maildir/.ReadyToSent.both/" sent="~/Maildir/.Sent.both/" from="test@kraskript.com" recipients="tsv@kraskript.com,arise@kraskript.com" instances="5"/>
+		<smtp host="192.168.22.70:25" username="test" password="$$$SVK_POP3_PASSWORD" source="~/Maildir/.ReadyToSent.tsv/" sent="~/Maildir/.Sent.tsv/" from="test@kraskript.com" recipients="tsv@kraskript.com" instances="5"/>
+	</stage>
+	<stage type="execute" enabled="1">
+		<description>Вызов внешней программы</description>
+		<execute command="ping -c 2 192.168.22.70" verbose="1"/>
+	</stage>
 </config>

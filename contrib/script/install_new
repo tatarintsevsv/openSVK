@@ -25,27 +25,34 @@ dependencies=("libxml2" "libuuid" "cmake" "git")
 deposbased=()
 install_pkg=""
 checkpkg=""
-# TODO: add yum based anf dnf based
+
 case "${osid//\"}" in
  "ubuntu" )
  echo Cемейство Ubuntu
  deposbased=("libcurl4" "libxml2-dev" "libcurl4-gnutls-dev" "build-essential")
  install_pkg="install_aptget" 
+ pkgs_update='apt-get update'
  ;;
  "altlinux" )
  echo Семейство Alt Linux
  deposbased=("libcurl" "i586-libxml2-devel" "i586-libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-devel-static")
  install_pkg="install_aptget"
+ pkgs_update='apt-get update'
  ;;
  "redos" )
  echo Семейство RedOS
- deposbased=("libcurl" "libxml2-devel" "libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-devel-static")
- install_pkg="install_aptget"
+ deposbased=("libcurl" "libxml2-devel" "libcurl-devel" "gcc" "gcc-c++" "libuuid-devel" "libstdc++-devel" "libstdc++-static" "libstdc++")
+ install_pkg="install_yum"
+ pkgs_update='yum -y update'
  ;;
 esac
 if [[ -z $install_pkg ]]; then
     echo -e $RED Данный дистрибутив не поддерживается. Компиляция и установка должны производиться вручную  $NC
+    exit 1
 fi
+echo -e $'\n'$BLUE Обновление списка пакетов $NC
+eval "$pkgs_update"
+
 dependencies+=(${deposbased[@]})
 missing_pkgs=()
 
@@ -58,6 +65,16 @@ else
     missing_pkgs+=$1
 fi
 }
+install_yum(){
+if yum list --installed | grep $1 > /dev/null 2>&1; then echo -e $LGREEN Ok $NC;return 0;fi
+echo -ne $GRAY
+if yum install -y $1; then
+    echo -e $LGREEN Ok $NC
+else
+    echo -e $RED Ошибка установки $NC
+    missing_pkgs+=($1)
+fi
+} 
 echo -e $'\n'$BLUE Проверка необходимых для компиляции и установки пакетов в системе $NC
 
 for item in ${dependencies[*]}
