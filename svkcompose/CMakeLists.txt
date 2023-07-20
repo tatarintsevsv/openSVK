@@ -15,5 +15,5 @@ endif()
 find_library(LIBUUID_LIBRARY NAMES uuid)
 link_libraries(${LIBUUID_LIBRARY})
 
+add_executable(svkcompose main.cpp svkcompose.h svkcompose.cpp base64.cpp base64.h ../config/configcxx.cpp ../config/configcxx.h ../common/linuxdir.cpp ../common/linuxdir.h)
 
-add_executable(svkcompose main.cpp svkcompose.h svkcompose.cpp base64.cpp base64.h ../common/linuxdir.cpp ../common/linuxdir.h)
