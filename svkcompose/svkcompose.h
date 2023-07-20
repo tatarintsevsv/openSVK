@@ -4,6 +4,7 @@
 #include <string>
 #include <syslog.h>
 
+#include "../common/linuxdir.h"
 #include "../config/config.h"
 
 #define CONFIG_XML "./config.xml"

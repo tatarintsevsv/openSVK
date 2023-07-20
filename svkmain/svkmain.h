@@ -1,16 +1,30 @@
 #ifndef SVKMAIN_H
 #define SVKMAIN_H
+
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include <map>
 #include <syslog.h>
+#include <time.h>
+#include <stdlib.h>
+#include <iostream>
+#include <fcntl.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/select.h>
+#include <semaphore.h>
+#include <sstream>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include "../common/linuxdir.h"
 #include "../config/config.h"
 
 #define CONFIG_XML "./config.xml"
 #define BINPATH "./"
 using  namespace std;
-
 enum class stageTypes{telnet,pop3,smtp,compose,extract,execute};
 static map<string,stageTypes> stages {{"telnet",stageTypes::telnet},
                                       {"pop3",stageTypes::pop3},

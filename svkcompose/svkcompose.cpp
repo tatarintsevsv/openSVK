@@ -11,13 +11,12 @@
 #include <sys/select.h>
 #include <sstream>
 #include <vector>
-#include <filesystem>
 #include <uuid/uuid.h>
 #include <sys/stat.h>
-#include <stdio.h>
+#include <dirent.h>
 #include <iomanip>
 
-namespace fs = std::filesystem;
+
 using namespace std;
 
 void svkCompose::prepareFile(string filename){
@@ -121,32 +120,10 @@ void svkCompose::processDir(string node)
 
     if(source.empty()||result.empty())
         return;
-    // Maildir lock
-/*
-    int lock=0;
-    if(access( (result+"dovecot-uidlist.lock").c_str(), F_OK ) == 0){
-        syslog(LOG_ERR,"Найдена блокировка %s. Ожидаем освобождения ресурса",(result+"dovecot-uidlist.lock").c_str());
-        while(access( (result+"dovecot-uidlist.lock").c_str(), F_OK ) == 0)
-            {sleep(1);};
-        syslog(LOG_ERR,"Блокировка %s снята. Продолжаем",(result+"dovecot-uidlist.lock").c_str());
-    }
-    if((lock = creat((result+"dovecot-uidlist.lock").c_str(), O_CREAT))==0){
-        syslog(LOG_ERR,"LOCKING ERROR %s (%s)",strerror(errno),(result+"dovecot-uidlist.lock").c_str());
-    }
-    write(lock,"locked",6);
-
-*/
     //****************
-    const fs::path dir{source};
-    for(const auto& entry: fs::directory_iterator(dir)){
-        if (!entry.is_regular_file())
-            continue;
-        const auto filenameStr = entry.path().filename().string();
-        prepareFile(filenameStr);
-    }
-/*    close(lock);
-    unlink((result+"dovecot-uidlist.lock").c_str());
-*/
+    const linuxdir dir{source};
+    for(const auto& entry: dir)
+        prepareFile(entry);
 }
 
 svkCompose::svkCompose(string root)

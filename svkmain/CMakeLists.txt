@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 project(svkmain LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 
 if(NOT DEFINED WHOLE_PROJECT)
@@ -14,8 +12,8 @@ else()
     link_libraries("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libconfig.so")
 endif()
 
-add_executable(svkmain main.cpp svkmain.h svkmain.cpp)
-target_link_libraries(svkmain stdc++fs)
+add_executable(svkmain main.cpp svkmain.h svkmain.cpp ../common/linuxdir.h ../common/linuxdir.cpp)
+target_link_libraries(svkmain)
 
 find_package(Threads REQUIRED)
 if(THREADS_HAVE_PTHREAD_ARG)

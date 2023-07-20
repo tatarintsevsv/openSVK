@@ -1,20 +1,6 @@
 #include "svkmain.h"
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <fcntl.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/select.h>
-#include <semaphore.h>
-#include <time.h>
-#include <sstream>
-#include <filesystem>
 
 using namespace std;
-namespace fs = std::filesystem;
 
 std::vector<std::string> splitString(const std::string& str)
 {
@@ -92,10 +78,6 @@ int svkMain::__execute(std::string cmd, string *reply)
                 return WEXITSTATUS(pclose(f));
             };
         }
-        //if(errno!=0){
-        //    //syslog(LOG_ERR,"POPEN error %s",strerror(errno));
-        //    return WEXITSTATUS(pclose(f));
-        //}
     }
     return WEXITSTATUS(pclose(f));
 }
@@ -200,16 +182,16 @@ int svkMain::stage_smtp(string configRoot)
     vector<string> lines;
     if(source.empty())
         return 0;
-    const fs::path dir{source+"cur/"};
-    for(const auto& entry: fs::directory_iterator(dir)){
-        if (!entry.is_regular_file())
-            continue;
-        const auto filenameStr = entry.path().filename().string();
+
+    const linuxdir dir{source+"cur/"};
+    for(const auto& entry: dir){
+        const auto filenameStr = entry;
         string filepath=source+"cur/"+filenameStr;
         oss.str("");
         oss<<BINPATH<<"svksmtp "<<configRoot<<" "<<filenameStr;
         lines.push_back(oss.str());
     }
+
     string lockfile=source+"dovecot-uidlist.lock";
     struct timespec ts_start;
     clock_gettime(CLOCK_REALTIME, &ts_start);
@@ -257,11 +239,9 @@ int svkMain::stage_extract(string configRoot)
         return -1;
 
     source+="tmp/";
-    const fs::path dir{source};
-    for(const auto& entry: fs::directory_iterator(dir)){
-        if (!entry.is_regular_file())
-            continue;
-        const auto filenameStr = entry.path().filename().string();
+    const linuxdir dir{source};
+    for(const auto& entry: dir){
+        const auto filenameStr = entry;
         string filepath=source+filenameStr;
         std::ostringstream oss;
         oss.str("");
@@ -272,13 +252,11 @@ int svkMain::stage_extract(string configRoot)
         if(r!=0)
             ;// TODO analize return code
     }
-    source=xmlReadPath("@in");
-    const fs::path dir2{source+"tmp/"};
-    for(const auto& entry: fs::directory_iterator(dir2)){
-        if (!entry.is_regular_file())
-            continue;
-        const auto filepath = source+"tmp/"+entry.path().filename().string();
-        string out=source+"cur/"+entry.path().filename().string();
+    source=xmlReadPath("@in");    
+    const linuxdir dir2{source+"tmp/"};
+    for(const auto& entry: dir2){
+        const auto filepath = source+"tmp/"+entry;
+        string out=source+"cur/"+entry;
         if(rename(filepath.c_str(),out.c_str())!=0){
                 syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",out.c_str(),strerror(errno));
                 return errno;
