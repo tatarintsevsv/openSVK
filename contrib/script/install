@@ -72,7 +72,7 @@ else
 fi
 }
 install_yum(){
-if yum list --installed | grep $1 > /dev/null 2>&1; then echo -e $LGREEN Ok $NC;return 0;fi
+if yum list --installed | grep -x $1 > /dev/null 2>&1; then echo -e $LGREEN Ok $NC;return 0;fi
 echo -ne $GRAY
 if yum install -y $1; then
     echo -e $LGREEN Ok $NC
