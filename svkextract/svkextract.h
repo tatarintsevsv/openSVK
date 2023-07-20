@@ -5,6 +5,7 @@
 #include <syslog.h>
 
 #include "../config/config.h"
+#include "../config/configcxx.h"
 
 #define CONFIG_XML "./config.xml"
 #define BINPATH "./"
@@ -23,21 +24,6 @@ struct mimepart{
 class svkExtract{
 private:
     int fd;
-    std::string xmlReadString(string path,string def=""){
-        char* r = configReadString(path.c_str(),def.c_str());
-        std::string res = std::string(r);
-        free(r);
-        return res;
-    };
-    int xmlReadInt(std::string path, int def=0){
-         return configReadInt(path.c_str(), def);
-    };
-    string xmlReadPath(string path,string def=""){
-        char* r = configReadPath(path.c_str(),def.c_str());
-        string res = string(r);
-        free(r);
-        return res;
-    };
     void parseHeader(dict* headers);
     void readPart(string boundary, mimepart* part);
     dict headers;

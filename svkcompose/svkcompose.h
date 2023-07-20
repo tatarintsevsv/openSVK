@@ -5,6 +5,7 @@
 #include <syslog.h>
 
 #include "../config/config.h"
+#include "../config/configcxx.h"
 
 #define CONFIG_XML "./config.xml"
 #define BINPATH "./"
@@ -20,22 +21,7 @@ protected:
     void processDir(string node);
 private:
     int seed;
-    std::string root;
-    std::string xmlReadString(string path,string def=""){
-        char* r = configReadString(path.c_str(),def.c_str());
-        std::string res = std::string(r);
-        free(r);
-        return res;
-    };
-    int xmlReadInt(std::string path, int def=0){
-         return configReadInt(path.c_str(), def);
-    };
-    string xmlReadPath(string path,string def=""){
-        char* r = configReadPath(path.c_str(),def.c_str());
-        string res = string(r);
-        free(r);
-        return res;
-    };
+    std::string root;    
     string facility;
     string source;
     string result;

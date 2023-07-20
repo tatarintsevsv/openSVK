@@ -10,8 +10,6 @@
 #define ETYPE extern
 #endif
 
-
-
 //extern xmlDocPtr doc;
 ETYPE void configClose();
 ETYPE bool configInit(const char *filename, const char *facility);
