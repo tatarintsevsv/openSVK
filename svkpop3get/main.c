@@ -117,13 +117,13 @@ int main(int argc, char *argv[])
             // sem sync
             sem_t *sem;
             sem_t *sem_c;
-            sem_c = sem_open("/svkpop3sem_count", O_RDWR);
+            sem_c = sem_open("/dev/shm/svkpop3sem_count", O_RDWR);
             if(sem_c==SEM_FAILED){
                 syslog(LOG_ERR,"Ошибка открытия семафора svkpop3sem_count %s",strerror(errno));
                 return -1;
             }
             sem_post(sem_c);
-            sem = sem_open("/svkpop3sem_wait", O_RDWR);
+            sem = sem_open("/dev/shm/svkpop3sem_wait", O_RDWR);
             if(sem==SEM_FAILED){
                 syslog(LOG_ERR,"Ошибка открытия семафора svkpop3sem_wait %s",strerror(errno));
                 return -1;

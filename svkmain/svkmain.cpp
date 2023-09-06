@@ -155,7 +155,7 @@ int svkMain::stage_pop3(string configRoot){
         oss<<BINPATH<<"svkpop3get "<<configRoot<<" "<< l;
         lines.push_back(oss.str());
     }
-    poolProcessing(lines,"/svkpop3sem_wait","/svkpop3sem_count",instances);
+    poolProcessing(lines,"/dev/shm/svkpop3sem_wait","/dev/shm/svkpop3sem_count",instances);
 
     return 0;
 }
@@ -206,7 +206,7 @@ int svkMain::stage_smtp(string configRoot)
     int fl=open(lockfile.c_str(),O_RDWR|O_CREAT);
     write(fl,"LOCKED",6);
     close(fl);
-    poolProcessing(lines,"/svksmtpsem_wait","/svksmtpsem_count",instances);
+    poolProcessing(lines,"/dev/shm/svksmtpsem_wait","/dev/shm/svksmtpsem_count",instances);
 
     unlink(lockfile.c_str());
     return 0;

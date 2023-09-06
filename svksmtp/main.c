@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
 #ifndef disablesync
     sem_t *sem;
     sem_t *sem_c;
-    sem_c = sem_open("/svksmtpsem_count", O_RDWR);
+    sem_c = sem_open("/dev/shm/svksmtpsem_count", O_RDWR);
     if(sem_c==SEM_FAILED){
         syslog(LOG_ERR,"Ошибка открытия семафора svksmtpsem_count %s",strerror(errno));
         return -1;
     }
     sem_post(sem_c);
-    sem = sem_open("/svksmtpsem_wait", O_RDWR);
+    sem = sem_open("/dev/shm/svksmtpsem_wait", O_RDWR);
     if(sem==SEM_FAILED){
         syslog(LOG_ERR,"Ошибка открытия семафора svksmtpsem_wait %s",strerror(errno));
         return -1;
