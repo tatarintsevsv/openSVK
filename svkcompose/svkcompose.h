@@ -18,8 +18,8 @@ class svkmain;
 
 class svkCompose{
 protected:
-    void prepareFile(string filename);
-    void processDir(string node);
+    void prepareFile(const string& filename);
+    void processDir(const string& node);
 private:
     int seed;
     std::string root;    

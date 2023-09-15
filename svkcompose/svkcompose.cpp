@@ -19,7 +19,7 @@
 
 using namespace std;
 
-void svkCompose::prepareFile(string filename){
+void svkCompose::prepareFile(const string &filename){
     char c_hostname[BUFSIZ]={0};
     gethostname(&c_hostname[0], BUFSIZ);
     string hostname = string(c_hostname);
@@ -109,7 +109,7 @@ void svkCompose::prepareFile(string filename){
         syslog(LOG_ERR,"Ошибка удаления исходного файла %s",string(source+filename).c_str());
     };
 }
-void svkCompose::processDir(string node)
+void svkCompose::processDir(const string &node)
 {
     configSetRoot(node.c_str());
     source=xmlReadPath("@in");

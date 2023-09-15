@@ -40,18 +40,17 @@ class svkmain;
 
 class svkMain{
 protected:
-    int stage_pop3(string configRoot);
-    int stage_execute(string configRoot);
-    int stage_smtp(string configRoot);
-    int stage_telnet(string configRoot);
-    int stage_compose(string configRoot);
-    int stage_extract(string configRoot);
+    int stage_pop3(const string &configRoot);
+    int stage_execute(const string &configRoot);
+    int stage_smtp(const string &configRoot);
+    int stage_telnet(const string &configRoot);
+    int stage_compose(const string &configRoot);
+    int stage_extract(const string &configRoot);
 private:
     int pollinterval;
-    int __execute(string cmd, string *reply);
-    FILE *__executeasync(string cmd);
-    void forkWork(string cmd, string param1="", string param2="", string param3="");    
-    void poolProcessing(vector<string> lines,string sem_wait,string sem_count,int instances);
+    int __execute(const string &cmd, string *reply);
+    FILE *__executeasync(const string &cmd);
+    void poolProcessing(vector<string> &lines,const string &sem_wait, const string &sem_count,int instances);
 
     string xmlReadString(string path,string def=""){
         char* r = configReadString(path.c_str(),def.c_str());
@@ -71,7 +70,7 @@ private:
 
 
 public:
-    svkMain();
+    svkMain() = default;
     int get_pollinterval(){return pollinterval;};
     int run();
 };

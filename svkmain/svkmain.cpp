@@ -17,31 +17,8 @@ std::vector<std::string> splitString(const std::string& str)
     return tokens;
 }
 
-svkMain::svkMain()
-{
 
-}
-void svkMain::forkWork(string cmd, string param1, string param2, string param3){
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-            perror("pipe");
-            exit(EXIT_FAILURE);
-    }
-    pid_t cpid = fork();
-    if (cpid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-
-    if (cpid == 0) {    /* Child writes to pipe */
-        while ((dup2(pipefd[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
-        close(pipefd[1]);
-        close(pipefd[0]);
-        int rc = execl(cmd.c_str(),cmd.c_str(),param1.empty()?NULL:param1.c_str(),param2.empty()?NULL:param2.c_str(),param3.empty()?NULL:param3.c_str(),NULL);
-        _exit(EXIT_FAILURE);
-    }
-}
-FILE* svkMain::__executeasync(string cmd){
+FILE* svkMain::__executeasync(const string &cmd){
 
     printf("        __executeasync %s\n",cmd.c_str());
     FILE* f=popen(cmd.c_str(),"r");
@@ -52,7 +29,7 @@ FILE* svkMain::__executeasync(string cmd){
     return f;
 }
 
-int svkMain::__execute(std::string cmd, string *reply)
+int svkMain::__execute(const string &cmd, string *reply)
 {    
     printf("        __execute %s\n",cmd.c_str());
     *reply = "";
@@ -82,7 +59,7 @@ int svkMain::__execute(std::string cmd, string *reply)
     return WEXITSTATUS(pclose(f));
 }
 
-void svkMain::poolProcessing(vector<string> lines,string sem_wait,string sem_count,int instances){
+void svkMain::poolProcessing(vector<string> &lines,const string &sem_wait, const string &sem_count,int instances){
     FILE* fi[instances];
     string replies[instances];
     while(lines.size()){
@@ -96,7 +73,7 @@ void svkMain::poolProcessing(vector<string> lines,string sem_wait,string sem_cou
             fi[i]=NULL;
         int fd=0;
         int activeinstances=0;
-        for(int i=0;i<instances&&lines.size();++i,++activeinstances){
+        for(int i=0;i<instances&&lines.size();++i,++activeinstances){            
             fi[i] = __executeasync(lines.back());
             lines.pop_back();
             if(fileno(fi[i])>fd)
@@ -138,7 +115,7 @@ void svkMain::poolProcessing(vector<string> lines,string sem_wait,string sem_cou
         }// wait for finished
     }// whole messages
 }
-int svkMain::stage_pop3(string configRoot){
+int svkMain::stage_pop3(const string &configRoot){
     std::ostringstream oss;
     oss<<BINPATH<<"svkpop3list "<<configRoot;
     std::string cmd = oss.str();
@@ -160,7 +137,7 @@ int svkMain::stage_pop3(string configRoot){
     return 0;
 }
 
-int svkMain::stage_execute(string configRoot)
+int svkMain::stage_execute(const string &configRoot)
 {
     string cmd=xmlReadString("execute/@command");
     string reply;
@@ -174,7 +151,7 @@ int svkMain::stage_execute(string configRoot)
     return res;
 }
 
-int svkMain::stage_smtp(string configRoot)
+int svkMain::stage_smtp(const string &configRoot)
 {    
     string source=xmlReadPath("@source");
     int instances=xmlReadInt("@instances",1);
@@ -212,7 +189,7 @@ int svkMain::stage_smtp(string configRoot)
     return 0;
 }
 
-int svkMain::stage_telnet(string configRoot)
+int svkMain::stage_telnet(const string &configRoot)
 {
     std::ostringstream oss;
     oss<<BINPATH<<"svktelnet "<<configRoot;
@@ -222,7 +199,7 @@ int svkMain::stage_telnet(string configRoot)
     return r;
 }
 
-int svkMain::stage_compose(string configRoot)
+int svkMain::stage_compose(const string &configRoot)
 {
     std::ostringstream oss;
     oss<<BINPATH<<"svkcompose "<<configRoot;
@@ -232,7 +209,7 @@ int svkMain::stage_compose(string configRoot)
     return r;
 }
 
-int svkMain::stage_extract(string configRoot)
+int svkMain::stage_extract(const string &configRoot)
 {
     string source=xmlReadPath("@in");
     if(source.empty())
@@ -324,6 +301,7 @@ int svkMain::run()
                     catch (std::invalid_argument const& ex)
                     {
                         syslog(LOG_ERR,"Не указаны правила обработки писем");
+                        break;
                     }
                     for(int rule=0;rule<mdaCount;rule++){
                         string xp = path+"extract["+to_string(rule+1)+"]/";

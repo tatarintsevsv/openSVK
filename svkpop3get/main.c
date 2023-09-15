@@ -199,17 +199,11 @@ int main(int argc, char *argv[])
         }
         curl_easy_cleanup(curl);
     }
-    //char newfn[BUFSIZE*2];
-    //sprintf (newfn, "%scur/%s",maildir,filename);
     free(facility);
     free(host);
     free(user);
     free(password);
     free(maildir);
-    //if(rename(filepath,newfn)!=0){
-    //    syslog(LOG_ERR,"Ошибка переноса письма в %s (%s)",newfn,strerror(errno));
-    //    return errno;
-    //};
     printf("%s\n", res==CURLE_OK?filename:"-");
     return (int)res;
 }
