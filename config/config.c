@@ -16,6 +16,7 @@ xmlDocPtr doc=NULL;
 char configRoot[BUFSIZE]={0};
 char* configGetNodeSet(const char* XPath)
 {    
+    assert(XPath!=NULL);
     xmlXPathContextPtr context;
     char* res=malloc(BUFSIZE);
     memset(res,'\0',BUFSIZE);
@@ -136,6 +137,7 @@ char* configReadString(const char* path,const char* def)
 
 char* configReadPath(const char* path,const char* def)
 {
+    assert(path!=NULL);
     char* res = configReadString(path,def);
     wordexp_t exp_result;
     wordexp(res, &exp_result, 0);
@@ -147,6 +149,7 @@ char* configReadPath(const char* path,const char* def)
 }
 
 int configReadInt(const char* path, int def){
+    assert(path!=NULL);
     char* val=configReadString(path,"");
     int res=def;
     if(strlen(val))

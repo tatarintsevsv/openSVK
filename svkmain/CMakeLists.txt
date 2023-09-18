@@ -12,7 +12,7 @@ else()
     link_libraries("${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libconfig.so")
 endif()
 
-add_executable(svkmain main.cpp svkmain.h svkmain.cpp ../common/linuxdir.h ../common/linuxdir.cpp)
+add_executable(svkmain main.cpp svkmain.h svkmain.cpp ../common/linuxdir.h ../common/linuxdir.cpp ../config/configcxx.cpp ../config/configcxx.h)
 target_link_libraries(svkmain)
 
 find_package(Threads REQUIRED)

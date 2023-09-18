@@ -20,7 +20,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "../common/linuxdir.h"
-#include "../config/config.h"
+#include "../config/configcxx.h"
 
 #define CONFIG_XML "./config.xml"
 #define BINPATH "./"
@@ -51,22 +51,6 @@ private:
     int __execute(const string &cmd, string *reply);
     FILE *__executeasync(const string &cmd);
     void poolProcessing(vector<string> &lines,const string &sem_wait, const string &sem_count,int instances);
-
-    string xmlReadString(string path,string def=""){
-        char* r = configReadString(path.c_str(),def.c_str());
-        string res = string(r);
-        free(r);
-        return res;
-    };
-    string xmlReadPath(string path,string def=""){
-        char* r = configReadPath(path.c_str(),def.c_str());
-        string res = string(r);
-        free(r);
-        return res;
-    };
-    int xmlReadInt(string path, int def=0){
-         return configReadInt(path.c_str(), def);
-    };
 
 
 public:

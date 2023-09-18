@@ -3,8 +3,6 @@
 #include <string>
 #include <map>
 #include <syslog.h>
-
-#include "../config/config.h"
 #include "../config/configcxx.h"
 
 #define CONFIG_XML "./config.xml"

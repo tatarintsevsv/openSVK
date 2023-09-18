@@ -26,8 +26,6 @@ int bufptr=0;
 int global_result=0;
 
 static size_t curl_read(char *ptr, size_t size, size_t nmemb, char *userdata){
-//    size_t len = fread(ptr,size,nmemb,fd);
-
     FILE* f = fopen(rules,"r");
     if(f==NULL){
         syslog(LOG_ERR,"Ошибка открытия файла правил %s",rules);
@@ -102,7 +100,6 @@ static size_t curl_write(char *ptr, size_t size, size_t nmemb, char *userdata){
         bufsize+=(size * nmemb)+1;
         readbuf[bufptr]='\0';
         syslog(LOG_DEBUG,"%s",buf);
-        //printf("%s",readbuf);
         free(buf);
     }
     return size * nmemb;
@@ -118,11 +115,6 @@ static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *
 
 int main(int argc, char *argv[])
 {
-
-    /*
-     * https://www.omnisecu.com/tcpip/telnet-commands-and-options.php
-    */
-
     if(argc<2){
         return -1;
     }    
@@ -157,23 +149,15 @@ int main(int argc, char *argv[])
         bufsize = BUFSIZE;
         bufptr = 0;
         syslog(LOG_INFO,"Обработка сценария %s",rules);
-        //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
         curl_easy_setopt(curl, CURLOPT_URL, host);
         curl_easy_setopt(curl, CURLOPT_NOBODY,1);
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curl_response_headers);
         curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_read);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write);
-        //struct curl_slist *options=NULL;
-        //         //options = curl_slist_append(NULL, "TTYPE=vt100");
-        //
-        //         curl_easy_setopt(curl, CURLOPT_TELNETOPTIONS, options);
-
         res = curl_easy_perform(curl);
-
         if(res != CURLE_OK){
             syslog(LOG_ERR,"Ошибка транспорта %i: %s",res,curl_easy_strerror(res));
         }
-
         curl_easy_cleanup(curl);
     }
     free(facility);
