@@ -63,6 +63,9 @@ jobs:
 
     # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
     # If this step fails, then you should remove it and run the build manually (see below)
+    - name: Install cURL/libxml2
+      run: sudo apt-get install libcurl4-openssl-dev libxml2-dev
+      
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
 
