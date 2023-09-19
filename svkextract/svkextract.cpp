@@ -136,7 +136,7 @@ int svkExtract::run(char* configRoot, char* filename)
                 while(access( dest.c_str(), F_OK ) != -1)
                     dest=extractto+to_string(++c)+"_"+attachment;
                 int f;
-                if((f=open(dest.c_str(),O_CREAT|O_WRONLY))<=0){
+                if((f=open(dest.c_str(),O_CREAT|O_WRONLY,0644))<=0){
                     syslog(LOG_ERR,"Ошибка открытия файла для записи %s (%s)",dest.c_str(),strerror(errno));
                     return -2;
                 }
