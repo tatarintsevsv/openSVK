@@ -1,18 +1,18 @@
-#/lib/systemd/system/svk-cbr.service
+#/lib/systemd/system/opensvk.service
 [Unit]
   Description=ЦБР СВК
 
 [Service]
-  ExecStart=/opt/cbr-svk/svkmain
-  WorkingDirectory=/opt/cbr-svk
+  ExecStart=/opt/openSVK/svkmain
+  WorkingDirectory=/opt/openSVK
   Type=idle
   KillMode=process
-  SyslogIdentifier=cbr-svk
+  SyslogIdentifier=openSVK
   SyslogFacility=daemon
   Restart=on-failure
   #User=sysuser
   #Group=sysgroup
-  EnvironmentFile=/opt/cbr-svk/service.env
+  EnvironmentFile=/opt/openSVK/service.env
 
 [Install]
   WantedBy=multiuser.target

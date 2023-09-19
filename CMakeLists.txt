@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 set(WHOLE_PROJECT ON)
-project(cbr_svk)
+project(openSvk)
 
 option(BUILD_config "Собирать config" ON)
 option(BUILD_svkcompose "Собирать svkcompose" ON)

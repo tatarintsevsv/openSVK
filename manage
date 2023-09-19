@@ -1,6 +1,6 @@
 #!/bin/bash
 RED='\033[1;31m';GREEN='\033[0;32m';BLUE='\033[1;34m';LGREEN='\033[1;32m';WHITE='\033[1;37m';GRAY='\033[1;30m';NC='\033[0m';YELLOW='\033[1;33m'
-daemon_name="cbr-svk"
+daemon_name="opensvk"
 
 anykey(){ 
 read -s -N 1 -p "Нажмите любую клавишу" choose 
