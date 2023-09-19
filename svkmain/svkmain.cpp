@@ -180,7 +180,7 @@ int svkMain::stage_smtp(const string &configRoot)
             return 1;
         }
     };
-    int fl=open(lockfile.c_str(),O_RDWR|O_CREAT);
+    int fl=open(lockfile.c_str(),O_RDWR|O_CREAT,0644);
     write(fl,"LOCKED",6);
     close(fl);
     poolProcessing(lines,"/dev/shm/svksmtpsem_wait","/dev/shm/svksmtpsem_count",instances);
