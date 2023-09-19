@@ -123,7 +123,7 @@ char* configReadString(const char* path,const char* def)
     if(strstr(set,"$$$")==set){
         char* r = getenv(&set[3]);
         if(r!=NULL){
-            set = realloc(set,strlen(r));
+            set = realloc(set,strlen(r)+1);
             strcpy(set,r);
         }
     }
@@ -142,7 +142,7 @@ char* configReadPath(const char* path,const char* def)
     wordexp_t exp_result;
     wordexp(res, &exp_result, 0);
     free(res);
-    res = (char*)malloc(strlen(exp_result.we_wordv[0]));
+    res = (char*)malloc(strlen(exp_result.we_wordv[0])+1);
     strcpy(res,exp_result.we_wordv[0]);
     wordfree(&exp_result);
     return res;
