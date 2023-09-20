@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 set(WHOLE_PROJECT ON)
 project(openSvk)
 
+enable_testing()
+
 option(BUILD_config "Собирать config" ON)
 option(BUILD_svkcompose "Собирать svkcompose" ON)
 option(BUILD_svkextract "Собирать svkextract" ON)
@@ -12,6 +14,7 @@ option(BUILD_svkpop3list "Собирать svkpop3list" ON)
 option(BUILD_svksmtp "Собирать svksmtp" ON)
 option(BUILD_svktelnet "Собирать svktelnet" ON)
 
+option(BUILD_tests "Собирать Test" ON)
 
 if(BUILD_config)
 add_subdirectory(config)
@@ -39,3 +42,6 @@ if(BUILD_svktelnet)
     add_subdirectory(svktelnet)
 endif()
 
+if(BUILD_tests)
+    add_subdirectory(test)
+endif()
