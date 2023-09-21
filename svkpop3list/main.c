@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     openlog(facility,LOG_CONS|LOG_PID,LOG_MAIL);
-    syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);
+    syslog(LOG_DEBUG,"Используем конфигурацию %s",argv[1]);    
 
     buf = configReadString("pop3/@host","");
     host = malloc(strlen(buf)+8);
@@ -86,6 +86,10 @@ int main(int argc, char *argv[])
     }
     printf("\n");
     syslog(LOG_INFO,"На сервере %i сообщений",msgcount);
+    free(host);
+    free(user);
+    free(password);
+    free(facility);
 
 
     return (int)res;
