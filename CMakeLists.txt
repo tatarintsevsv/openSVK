@@ -16,6 +16,9 @@ option(BUILD_svktelnet "Собирать svktelnet" ON)
 
 option(BUILD_tests "Собирать Test" ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./../../bin")
+
+
 if(BUILD_config)
 add_subdirectory(config)
 endif()

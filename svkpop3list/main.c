@@ -9,10 +9,15 @@
 
 #define CONFIG_XML "./config.xml"
 #define BUFSIZE 1024
-
+/**
+ * @brief счетчик количества сообщений на сервере
+ */
 int msgcount=0;
 
-
+/**
+ * @brief callback для данных libcurl
+ * @details https://curl.se/libcurl/c/CURLOPT_READFUNCTION.html
+*/
 static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
     char* buf=malloc(size * nmemb+1);
     buf[size * nmemb]='\0';
@@ -26,6 +31,10 @@ static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
     return size * nmemb;
 }
 
+/**
+ * @brief callback для данных libcurl при получении заголовков
+ * @details https://curl.se/libcurl/c/CURLOPT_HEADERFUNCTION.html
+*/
 static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *userdata){
     char* buf=malloc(size * nmemb+1);
     buf[size * nmemb]='\0';

@@ -1,16 +1,28 @@
 #include "base64.h"
 #include <iostream>
-
+/**
+ * @brief Алфавит base64
+ */
 static const std::string base64_chars =
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
              "abcdefghijklmnopqrstuvwxyz"
              "0123456789+/";
 
-
+/**
+ * @brief Определяет входит ли символ в допустимые для base64
+ * @param c - символ
+ * @return
+ */
 static inline bool is_base64(BYTE c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
+/**
+ * @brief Кодирование данных в base64
+ * @param buf - указатель на буфер данных
+ * @param bufLen - длина буфера
+ * @return base64 строка
+ */
 std::string base64_encode(const BYTE* buf, unsigned int bufLen) {
   std::string ret;
   int i = 0;
@@ -52,6 +64,10 @@ std::string base64_encode(const BYTE* buf, unsigned int bufLen) {
   return ret;
 }
 
+/**
+ * @brief Декодирование из base64
+ * @return вектор с данными
+ */
 std::vector<BYTE> base64_decode(std::string const& encoded_string) {
   int in_len = encoded_string.size();
   int i = 0;

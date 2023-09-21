@@ -18,20 +18,58 @@ class svkmain;
 
 class svkCompose{
 protected:
+    /**
+     * @brief Функция формирования письма из файла
+     * @param filename - исходный файл
+     */
     void prepareFile(const string& filename);
+
+    /**
+     * @brief Функция обхода каталога для обработки файлов
+     * @param node - узел конфигурации
+     */
     void processDir(const string& node);
 private:
-    int seed;
-    std::string root;    
+    /**
+     * @brief Корневой узел конфигурации для работы
+     */
+    std::string root;
+    /**
+     * @brief syslog facility
+     */
     string facility;
+    /**
+     * @brief Текущий исходный каталог
+     */
     string source;
+    /**
+     * @brief Каталог, в котором будут формироваться письма
+     */
     string result;
+    /**
+     * @brief имя отправителя для письма
+     */
     string from;
+    /**
+     * @brief Получатели письма
+     */
     string recipients;
+    /**
+     * @brief Тема письма
+     */
     string subject;
 
 public:
+    /**
+     * @brief Конструктор. Инициализирует конфигурацию и считывает параметры
+     * @param root - корневой узел для работы
+     */
     svkCompose(string root);
+
+    /**
+     * @brief Запуск обработки
+     * @return результат работы (Всегда 0)
+     */
     int run();
 
 };

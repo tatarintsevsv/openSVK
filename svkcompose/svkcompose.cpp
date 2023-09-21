@@ -16,7 +16,6 @@
 #include <dirent.h>
 #include <iomanip>
 
-
 using namespace std;
 
 void svkCompose::prepareFile(const string &filename){
@@ -109,6 +108,7 @@ void svkCompose::prepareFile(const string &filename){
         syslog(LOG_ERR,"Ошибка удаления исходного файла %s",string(source+filename).c_str());
     };
 }
+
 void svkCompose::processDir(const string &node)
 {
     configSetRoot(node.c_str());

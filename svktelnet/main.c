@@ -14,7 +14,9 @@
 #define BUFSIZE 8192
 #define TELNET_RESULT_OK 1
 #define TELNET_RESULT_FAIL 2
-
+/**
+ * @brief user
+ */
 char* user;
 char* password;
 CURL *curl;
@@ -25,6 +27,10 @@ int bufsize=0;
 int bufptr=0;
 int global_result=0;
 
+/**
+ * @brief callback для данных libcurl
+ * @details https://curl.se/libcurl/c/CURLOPT_READFUNCTION.html
+*/
 static size_t curl_read(char *ptr, size_t size, size_t nmemb, char *userdata){
     FILE* f = fopen(rules,"r");
     if(f==NULL){
@@ -89,6 +95,11 @@ static size_t curl_read(char *ptr, size_t size, size_t nmemb, char *userdata){
     return CURL_READFUNC_PAUSE;
 
 }
+
+/**
+ * @brief callback для данных libcurl при получении данных
+ * @details https://curl.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
+*/
 static size_t curl_write(char *ptr, size_t size, size_t nmemb, char *userdata){
     if(size*nmemb>0){
         char* buf=malloc(BUFSIZE);
@@ -104,6 +115,11 @@ static size_t curl_write(char *ptr, size_t size, size_t nmemb, char *userdata){
     }
     return size * nmemb;
 }
+
+/**
+ * @brief callback для данных libcurl при получении заголовков
+ * @details https://curl.se/libcurl/c/CURLOPT_HEADERFUNCTION.html
+*/
 static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *userdata){
     char* buf=malloc(size * nmemb+1);
     buf[size * nmemb]='\0';

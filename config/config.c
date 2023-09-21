@@ -11,9 +11,21 @@
 #include <libxml2/libxml/xmlerror.h>
 #include <libxml2/libxml/valid.h>
 #include "string.h"
+/**
+ * @brief укзатель на открытый xml документ (файл конфигурации)
+ */
 xmlDocPtr doc=NULL;
+
+/**
+ * @brief Размер буфера по умолчанию
+ */
 #define BUFSIZE 1024
+
+/**
+ * @brief Узел конфигурации, считающийся корнем при чтении параметров
+ */
 char configRoot[BUFSIZE]={0};
+
 char* configGetNodeSet(const char* XPath)
 {    
     assert(XPath!=NULL);
@@ -93,6 +105,7 @@ void configClose()
     }
     xmlCleanupParser();
 }
+
 void configSetRoot(const char *path){
     strcpy(configRoot,path);
 }
@@ -110,13 +123,12 @@ bool configInit(const char* filename, const char* facility)
     return true;
 }
 
-
 char* configReadString(const char* path,const char* def)
 {
     assert(path!=NULL);
     if(def==NULL)
         def="";
-    char* xpath=malloc(CONFIG_BUFSIZE);
+    char* xpath=malloc(BUFSIZE);
     sprintf (xpath, "%s%s",configRoot, path);
     char* set=NULL;
     set = configGetNodeSet(xpath);

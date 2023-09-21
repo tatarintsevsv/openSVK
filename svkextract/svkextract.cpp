@@ -18,7 +18,13 @@ svkExtract::svkExtract()
 {
 
 }
-
+/**
+ * @brief Функция чтения строки из файла
+ * @param buf - указатель на буфер
+ * @param bufsize - размер буфера
+ * @param f - файловый дескриптор
+ * @return
+ */
 int readline(char* buf, size_t bufsize, int f){
     size_t strlen=0;
     char c;

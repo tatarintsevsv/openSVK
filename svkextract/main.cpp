@@ -10,6 +10,12 @@
 using namespace std;
 
 
+/**
+ * @brief Точка входа
+ * @param argc - Количество параметров. Обязательно = 3
+ * @param argv - Параметры командной строки: argv[0] - имя исполняемого файла, argv[1] - узел с конфигурацией этапа (stage type="compose"), argv[2] - путь к файлу для обработки
+ * @return
+ */
 
 int main(int argc,char* argv[])
 {

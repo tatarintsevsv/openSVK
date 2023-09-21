@@ -1,6 +1,11 @@
 #include "svkmain.h"
 
 using namespace std;
+/**
+ * @brief Функция разделения строки по символам переноса (\r и \n)
+ * @param str - исходная строка
+ * @return Вектор строк
+ */
 
 std::vector<std::string> splitString(const std::string& str)
 {

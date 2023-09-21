@@ -17,10 +17,28 @@
 #define CONFIG_XML "./config.xml"
 #define BUFSIZE 1024
 
+/**
+ * @brief Буфер чтения
+ */
 char* buffer = NULL;
+/**
+ * @brief Количество данных в буфере
+ */
 size_t bufferSize = 0;
+/**
+ * @brief Файловый дескриптор для чтения файла
+ */
 int f = 0;
+
+/**
+ * @brief Счетчик синхронизации семафора
+ */
 int sem_counter_val;
+
+/**
+ * @brief callback для данных libcurl
+ * @details https://curl.se/libcurl/c/CURLOPT_READFUNCTION.html
+*/
 static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
     if(size * nmemb!=0){
         char* buf=malloc(size * nmemb+1);
@@ -32,6 +50,10 @@ static size_t curl_read(void *ptr, size_t size, size_t nmemb, void* userdata){
     return read(f,ptr,size * nmemb);
 }
 
+/**
+ * @brief callback для данных libcurl при получении заголовков
+ * @details https://curl.se/libcurl/c/CURLOPT_HEADERFUNCTION.html
+*/
 static size_t curl_response_headers(char *ptr, size_t size, size_t nmemb, char *userdata){
     char* buf=malloc(size * nmemb+1);
     buf[size * nmemb]='\0';
