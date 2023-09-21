@@ -14,7 +14,7 @@ option(BUILD_svkpop3list "Собирать svkpop3list" ON)
 option(BUILD_svksmtp "Собирать svksmtp" ON)
 option(BUILD_svktelnet "Собирать svktelnet" ON)
 
-option(BUILD_tests "Собирать Test" ON)
+option(BUILD_tests "Собирать Test" OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./../../bin")
 
