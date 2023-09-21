@@ -18,16 +18,18 @@ int main(int argc,char* argv[])
         printf("Ошибка смены каталога. %s",strerror(errno));
         return -1;
     }
+    svkMain* svk = new svkMain();
+    int interval=svk->get_pollinterval();
     while(1){
-        printf("Запуск обработки\n");
-        svkMain* svk = new svkMain();
+        printf("Запуск обработки\n");        
         svk->run();
-        int interval=svk->get_pollinterval();
-        delete svk;
-        if(interval==0)
+        if(interval==0){
+            delete svk;
             return 0;
+        }
         printf("Завершено. Следующая обработка через %i сек.\n",interval);
         sleep(interval);
     }
+    delete svk;
     return 0;
 }

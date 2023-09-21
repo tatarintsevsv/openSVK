@@ -40,22 +40,23 @@ int svkMain::__execute(const string &cmd, string *reply)
     }
     int fd = fileno(f);
     fd_set set;
-    struct timeval t;
+    struct timeval t = {0};
     t.tv_sec=60;
     char* buf=(char*)malloc(8196);
     while(1){        
         FD_ZERO(&set);
         FD_SET(fd,&set);
         select(fd+1,&set,NULL,NULL, &t);
-        if(FD_ISSET(fd,&set)){
-            int len = read(fd,buf,8196);
-            if(len){
+        if(FD_ISSET(fd,&set)){            
+            if(read(fd,buf,8196)){
                 *reply+=std::string((char*)buf);
             }else{
+                free(buf);
                 return WEXITSTATUS(pclose(f));
             };
         }
     }
+    free(buf);
     return WEXITSTATUS(pclose(f));
 }
 
@@ -115,6 +116,22 @@ void svkMain::poolProcessing(vector<string> &lines,const string &sem_wait, const
         }// wait for finished
     }// whole messages
 }
+
+svkMain::svkMain()
+{
+    openlog("SVKMain",LOG_CONS|LOG_PID,LOG_MAIL);
+    configInit(CONFIG_XML,"SVKMain");
+    configSetRoot("");
+    pollinterval = xmlReadInt("//config/global/@pollinterval");
+}
+
+svkMain::~svkMain()
+{
+    configClose();
+    syslog(LOG_INFO,"обработка завершена");
+    closelog();
+}
+
 int svkMain::stage_pop3(const string &configRoot){
     std::ostringstream oss;
     oss<<BINPATH<<"svkpop3list "<<configRoot;
@@ -246,14 +263,12 @@ int svkMain::stage_extract(const string &configRoot)
 
 int svkMain::run()
 {
-    openlog("SVKMain",LOG_CONS|LOG_PID,LOG_MAIL);
-    configInit(CONFIG_XML,"SVKMain");
-    configSetRoot("");
-    pollinterval = xmlReadInt("//config/global/@pollinterval");
-
     syslog(LOG_INFO,"=================================================");
     syslog(LOG_INFO,"Запуск обработки");
-    int stagesCount = stoi(configGetNodeSet("count(//config/stage)"));
+    char* nset = configGetNodeSet("count(//config/stage)");
+    int stagesCount = stoi(nset);
+    if(nset != NULL)
+        free(nset);
     for(int stage=1;stage<stagesCount+1;stage++){
         string path="//config/stage["+to_string(stage)+"]/";
         configSetRoot(path.c_str());
@@ -277,7 +292,9 @@ int svkMain::run()
                 {
                     int smtpCount = 0;
                     try{
-                        smtpCount = stoi(configGetNodeSet(string("count("+path+"smtp"+")").c_str()));
+                        char * nset = configGetNodeSet(string("count("+path+"smtp"+")").c_str());
+                        smtpCount = stoi(nset);
+                        free(nset);
                     }
                     catch (std::invalid_argument const& ex)
                     {
@@ -296,7 +313,9 @@ int svkMain::run()
                 {
                     int mdaCount = 0;
                     try{
-                        mdaCount = stoi(configGetNodeSet(string("count("+path+"extract"+")").c_str()));
+                        char * nset = configGetNodeSet(string("count("+path+"extract"+")").c_str());
+                        mdaCount = stoi(nset);
+                        free(nset);
                     }
                     catch (std::invalid_argument const& ex)
                     {
@@ -318,8 +337,5 @@ int svkMain::run()
             ;//TODO: check result
 
     }
-    configClose();
-    syslog(LOG_INFO,"обработка завершена");
-    closelog();
     return 0;
 }

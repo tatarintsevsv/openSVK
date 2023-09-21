@@ -91,6 +91,7 @@ void configClose()
         xmlFreeDoc(doc);
         doc=NULL;
     }
+    xmlCleanupParser();
 }
 void configSetRoot(const char *path){
     strcpy(configRoot,path);

@@ -54,7 +54,8 @@ private:
 
 
 public:
-    svkMain() = default;
+    svkMain();
+    ~svkMain();
     int get_pollinterval(){return pollinterval;};
     int run();
 };
